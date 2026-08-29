@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "totalQuestions": 5,
+    "questionsAttempted": 5,
+    "questionsUnanswered": 0,
+    "orphanAnswerCount": 0,
+    "expectedMappingAccuracy": "100%"
+  },
+  "mappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": "4",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "5",
+      "mappedToAnswerNumber": "5",
+      "expectedMethod": "number-exact"
+    }
+  ]
+}

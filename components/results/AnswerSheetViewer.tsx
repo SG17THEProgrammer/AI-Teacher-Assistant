@@ -75,7 +75,7 @@ export function AnswerSheetViewer({
       : '';
 
   return (
-    <div className="flex h-full flex-col bg-canvas-DEFAULT overflow-hidden rounded-[15px] ml-1">
+    <div className="flex h-full flex-col  overflow-hidden rounded-tr-[15px] rounded-tl-[15px] ml-2">
       {/* Top toolbar — always full width, never affected by zoom */}
       <div className="flex flex-shrink-0 items-center justify-between bg-ink-900 px-4 py-2.5 text-white"> 
         <span className="text-sm font-semibold">Answer Sheet</span>
@@ -136,7 +136,7 @@ export function AnswerSheetViewer({
       */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-auto scrollbar-thin md:p-6 border-2 border-black"
+        className="flex-1 overflow-auto scrollbar-thin"
       >
         {/*
           The page card width is expressed as a percentage of the *scroll
@@ -148,7 +148,7 @@ export function AnswerSheetViewer({
           - zoom 50   → width: 50%, half-width, still centered nicely
         */}
         <div
-          className="relative rounded-lg bg-white shadow-panel overflow-hidden mx-auto  border border-red-600"
+          className="relative bg-canvas shadow-panel overflow-hidden border-black-200 border-2 "
           style={{
             width: `${zoom}%`,
             // At sub-100 zoom let it be centred and not fill parent edge-to-edge
@@ -203,7 +203,7 @@ function PageRenderer({
     <img
       src={src}
       alt={`Answer sheet page ${page}`}
-      className="block h-auto w-full rounded-lg"
+      className="block h-auto min-w-full w-full"
       draggable={false}
       onError={() => setFailed(true)}
     />

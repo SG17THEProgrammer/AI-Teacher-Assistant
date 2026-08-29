@@ -1,0 +1,159 @@
+{
+  "questions": [
+    {
+      "questionNumber": "1",
+      "questionText": "Describe the water cycle in your own words.",
+      "totalMarks": 4
+    },
+    {
+      "questionNumber": "2",
+      "questionText": "Explain in detail the process of the carbon cycle, including at least four distinct stages, the role of respiration, and the role of decomposition.",
+      "totalMarks": 5
+    },
+    {
+      "questionNumber": "3",
+      "questionText": "What is the greenhouse effect?",
+      "totalMarks": 3
+    },
+    {
+      "questionNumber": "4",
+      "questionText": "Name two renewable and two non-renewable sources of energy.",
+      "totalMarks": 3
+    }
+  ],
+  "answers": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The water cycle involves evaporation of water from oceans and lakes, condensation into clouds, precipitation as rain or snow, and collection back into water bodies, repeating continuously."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The carbon cycle describes how carbon atoms continuously travel between the atmosphere, living organisms, the oceans, and the earth. Stage one: plants absorb carbon dioxide from the atmosphere during photosynthesis and convert it into glucose and other carbon compounds. Stage two: these compounds pass through food chains as animals eat plants and each other, moving carbon through the ecosystem."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "Stage three: respiration in both plants and animals releases carbon dioxide back into the atmosphere as they break down glucose for energy. Stage four: decomposition -- when organisms die, decomposers break down the remains and release the stored carbon back into the soil and atmosphere, completing the cycle. Human activity, especially burning fossil fuels, adds extra carbon dioxide that the natural cycle cannot fully absorb."
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "The greenhouse effect is the trapping of heat in the Earth's atmosphere by gases like carbon dioxide and methane, which keeps the planet warm enough to support life, though excess gases cause additional warming."
+    },
+    {
+      "detectedQuestionNumber": "4",
+      "answerText": "Renewable sources: solar energy and wind energy. Non-renewable sources: coal and petroleum."
+    }
+  ],
+  "expectedMappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact",
+      "expectedAdditionalRegions": 1,
+      "note": "Q2's answer spans 2 pages and must merge into one mapping with 2 bounding regions."
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": "4",
+      "expectedMethod": "number-exact"
+    }
+  ],
+  "unansweredQuestions": [],
+  "orphanAnswers": [],
+  "questionBoundingBoxes": [
+    {
+      "questionNumber": "1",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "2",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0903,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "questionNumber": "3",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.133,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "4",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.158,
+      "width": 0.8119,
+      "height": 0.0356
+    }
+  ],
+  "answerBoundingBoxes": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The water cycle involves evaporation of water from oceans and lakes, condensation into clouds, precipitation as rain or snow, and collection back into water bodies, repeating continuously.",
+      "key": null,
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The carbon cycle describes how carbon atoms continuously travel between the atmosphere, living organisms, the oceans, and the earth. Stage one: plants absorb carbon dioxide from the atmosphere during photosynthesis and convert it into glucose and other carbon compounds. Stage two: these compounds pass through food chains as animals eat plants and each other, moving carbon through the ecosystem.",
+      "key": "2-part1",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1081,
+      "width": 0.8119,
+      "height": 0.1069
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "Stage three: respiration in both plants and animals releases carbon dioxide back into the atmosphere as they break down glucose for energy. Stage four: decomposition -- when organisms die, decomposers break down the remains and release the stored carbon back into the soil and atmosphere, completing the cycle. Human activity, especially burning fossil fuels, adds extra carbon dioxide that the natural cycle cannot fully absorb.",
+      "key": "2-part2",
+      "page": 2,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.1069
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "The greenhouse effect is the trapping of heat in the Earth's atmosphere by gases like carbon dioxide and methane, which keeps the planet warm enough to support life, though excess gases cause additional warming.",
+      "key": null,
+      "page": 2,
+      "x": 0.0941,
+      "y": 0.1615,
+      "width": 0.8119,
+      "height": 0.0713
+    },
+    {
+      "detectedQuestionNumber": "4",
+      "answerText": "Renewable sources: solar energy and wind energy. Non-renewable sources: coal and petroleum.",
+      "key": null,
+      "page": 2,
+      "x": 0.0941,
+      "y": 0.2221,
+      "width": 0.8119,
+      "height": 0.0535
+    }
+  ],
+  "answerSheetPageCount": 2
+}

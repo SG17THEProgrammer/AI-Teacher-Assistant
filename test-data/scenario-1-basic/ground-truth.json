@@ -1,0 +1,170 @@
+{
+  "questions": [
+    {
+      "questionNumber": "1",
+      "questionText": "What is the SI unit of force?",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "2",
+      "questionText": "State Newton's second law of motion.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "3",
+      "questionText": "Define acceleration and give its SI unit.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "4",
+      "questionText": "Write the formula for kinetic energy of a moving object.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "5",
+      "questionText": "Name two effects that a force can produce on an object.",
+      "totalMarks": 2
+    }
+  ],
+  "answers": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The SI unit of force is the Newton (N), defined as the force needed to accelerate a 1 kg mass at 1 m/s^2."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "Newton's second law states that the force acting on an object equals the rate of change of its momentum, F = ma."
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "Acceleration is the rate of change of velocity with time. Its SI unit is metre per second squared (m/s^2)."
+    },
+    {
+      "detectedQuestionNumber": "4",
+      "answerText": "Kinetic energy KE = 1/2 m v^2, where m is mass and v is velocity."
+    },
+    {
+      "detectedQuestionNumber": "5",
+      "answerText": "A force can change the speed of an object, and it can change the direction of motion of an object."
+    }
+  ],
+  "expectedMappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": "4",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "5",
+      "mappedToAnswerNumber": "5",
+      "expectedMethod": "number-exact"
+    }
+  ],
+  "unansweredQuestions": [],
+  "orphanAnswers": [],
+  "questionBoundingBoxes": [
+    {
+      "questionNumber": "1",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "2",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0903,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "3",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1152,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "4",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1402,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "5",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1651,
+      "width": 0.8119,
+      "height": 0.0356
+    }
+  ],
+  "answerBoundingBoxes": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The SI unit of force is the Newton (N), defined as the force needed to accelerate a 1 kg mass at 1 m/s^2.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "Newton's second law states that the force acting on an object equals the rate of change of its momentum, F = ma.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1081,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "Acceleration is the rate of change of velocity with time. Its SI unit is metre per second squared (m/s^2).",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1509,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "4",
+      "answerText": "Kinetic energy KE = 1/2 m v^2, where m is mass and v is velocity.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1936,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "detectedQuestionNumber": "5",
+      "answerText": "A force can change the speed of an object, and it can change the direction of motion of an object.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.2186,
+      "width": 0.8119,
+      "height": 0.0535
+    }
+  ],
+  "answerSheetPageCount": 1
+}

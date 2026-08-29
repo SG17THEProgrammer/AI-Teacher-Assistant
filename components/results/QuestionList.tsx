@@ -45,7 +45,7 @@ export function QuestionList({
   };
 
   return (
-    <div className="flex h-full flex-col rounded-[15px] mr-1  border border-black-800">
+    <div className="flex h-full flex-col mr-1">
       <div className="flex items-center justify-between px-5 py-4">
         <h2 className="text-[15px] font-bold text-ink-900">
           Extracted Questions <span className="font-medium text-ink-400">(from question paper)</span>

@@ -1,0 +1,7 @@
+{
+  "id": "scenario-1-basic",
+  "title": "Basic Mapping",
+  "purpose": "Verify standard extraction and mapping when a student answers every question, in order, with the correct number written on each answer.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.pdf"
+}

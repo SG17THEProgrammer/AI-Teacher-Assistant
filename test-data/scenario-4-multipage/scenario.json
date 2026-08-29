@@ -1,0 +1,7 @@
+{
+  "id": "scenario-4-multipage",
+  "title": "Multi-page Answers",
+  "purpose": "Verify that an answer spanning two physical pages (Q2) is merged into a single mapping with multiple bounding regions, and that clicking Q2 highlights the relevant area on both pages.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.pdf"
+}

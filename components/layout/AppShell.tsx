@@ -28,7 +28,7 @@ export function AppShell({
       together can never push the page wider or taller than the viewport,
       which prevents the blank-gap issues at non-100% browser zoom.
     */
-    <div className="flex h-screen w-screen max-w-full overflow-hidden bg-canvas-DEFAULT">
+    <div className="flex h-screen w-screen max-w-full overflow-hidden">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}
@@ -46,7 +46,7 @@ export function AppShell({
           Main content area: flex-1 fills vertical space, overflow-hidden so
           each screen (Exams, Upload, Results…) controls its own scrolling.
         */}
-        <main className="flex-1 overflow-hidden bg-transparent rounded-[15px] mt-2 mb-2  border border-red-600">{children}</main>
+        <main className="flex-1 overflow-hidden bg-transparent  mt-2 mb-2">{children}</main>
       </div>
     </div>
   );

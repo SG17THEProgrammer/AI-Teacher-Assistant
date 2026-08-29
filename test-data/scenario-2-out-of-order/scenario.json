@@ -1,0 +1,7 @@
+{
+  "id": "scenario-2-out-of-order",
+  "title": "Out Of Order Answers",
+  "purpose": "Verify the mapping engine correctly pairs every question with its answer by number, and that the question list stays in original paper order, even though the student wrote answers in the order 5, 2, 1, 4, 3.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.pdf"
+}

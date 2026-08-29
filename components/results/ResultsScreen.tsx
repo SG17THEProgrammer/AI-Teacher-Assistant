@@ -71,7 +71,7 @@ export function ResultsScreen({ session, onBack }: { session: SessionData; onBac
           work correctly and nothing bleeds out of the split.
       */}
       <div className="hidden h-full md:flex overflow-hidden">
-        <div className="w-[49%] flex-shrink-0 bg-transparent overflow-hidden  border border-red-600 rounded-tr-[15px] rounded-br-[15px]">
+        <div className="w-[49%] flex-shrink-0 bg-transparent overflow-hidden  border-2 border-black-600 rounded-[15px]">
           {questionListEl}
         </div>
         <div className="min-w-0 flex-1 overflow-hidden ">

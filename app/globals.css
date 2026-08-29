@@ -8,7 +8,18 @@
 
 html,
 body {
-  background-color: #e9e7e4;
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(at 0% 0%, #e2e8f0 0px, transparent 50%),
+    /* Cool gray top-left */
+    radial-gradient(at 100% 0%, #f1f5f9 0px, transparent 50%),
+    /* Soft gray top-right */
+    radial-gradient(at 50% 50%, #ffffff 0px, transparent 80%),
+    /* Bright white center blend */
+    radial-gradient(at 0% 100%, #f8fafc 0px, transparent 50%),
+    /* Clean slate bottom-left */
+    radial-gradient(at 100% 100%, #cbd5e1 0px, transparent 50%);
+  /* Deeper gray bottom-right */
   color: #141414;
 }
 
@@ -24,6 +35,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -38,9 +50,11 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #c7c3bd transparent;
 }
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }
+
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: #c7c3bd;
   border-radius: 999px;

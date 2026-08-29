@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "totalQuestions": 8,
+    "questionsAttempted": 5,
+    "questionsUnanswered": 3,
+    "orphanAnswerCount": 0,
+    "expectedMappingAccuracy": "100% of answered questions",
+    "note": "Q4, Q6 and Q8 must be shown with a 'Not Answered' badge/warning state."
+  },
+  "mappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "5",
+      "mappedToAnswerNumber": "5",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "7",
+      "mappedToAnswerNumber": "7",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    },
+    {
+      "questionNumber": "6",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    },
+    {
+      "questionNumber": "8",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    }
+  ]
+}

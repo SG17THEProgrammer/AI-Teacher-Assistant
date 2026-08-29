@@ -1,0 +1,228 @@
+{
+  "questions": [
+    {
+      "questionNumber": "1",
+      "questionText": "Define photosynthesis.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "2",
+      "questionText": "Name the raw materials required for photosynthesis.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "3",
+      "questionText": "What is the role of chlorophyll in photosynthesis?",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "4",
+      "questionText": "Explain the term 'transpiration' in plants.",
+      "totalMarks": 3
+    },
+    {
+      "questionNumber": "5",
+      "questionText": "What is the function of stomata in a leaf?",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "6",
+      "questionText": "Describe the structure of a chloroplast.",
+      "totalMarks": 3
+    },
+    {
+      "questionNumber": "7",
+      "questionText": "Name two factors that affect the rate of photosynthesis.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "8",
+      "questionText": "Write the balanced chemical equation for photosynthesis.",
+      "totalMarks": 3
+    }
+  ],
+  "answers": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "Photosynthesis is the process by which green plants use sunlight to convert carbon dioxide and water into glucose and oxygen."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The raw materials required are carbon dioxide, water, and sunlight, with chlorophyll as the catalyst."
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "Chlorophyll absorbs light energy, mainly in the red and blue wavelengths, and converts it into chemical energy used to drive the photosynthetic reactions."
+    },
+    {
+      "detectedQuestionNumber": "5",
+      "answerText": "Stomata are small pores on the leaf surface that allow gas exchange, letting carbon dioxide in and oxygen and water vapour out."
+    },
+    {
+      "detectedQuestionNumber": "7",
+      "answerText": "Light intensity and carbon dioxide concentration are two factors that affect the rate of photosynthesis."
+    }
+  ],
+  "expectedMappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "5",
+      "mappedToAnswerNumber": "5",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "7",
+      "mappedToAnswerNumber": "7",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    },
+    {
+      "questionNumber": "6",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    },
+    {
+      "questionNumber": "8",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": null
+    }
+  ],
+  "unansweredQuestions": [
+    "4",
+    "6",
+    "8"
+  ],
+  "orphanAnswers": [],
+  "questionBoundingBoxes": [
+    {
+      "questionNumber": "1",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "2",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0903,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "3",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1152,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "4",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1402,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "5",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1651,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "6",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.19,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "7",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.215,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "8",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.2399,
+      "width": 0.8119,
+      "height": 0.0356
+    }
+  ],
+  "answerBoundingBoxes": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "Photosynthesis is the process by which green plants use sunlight to convert carbon dioxide and water into glucose and oxygen.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The raw materials required are carbon dioxide, water, and sunlight, with chlorophyll as the catalyst.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1081,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "Chlorophyll absorbs light energy, mainly in the red and blue wavelengths, and converts it into chemical energy used to drive the photosynthetic reactions.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1509,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "5",
+      "answerText": "Stomata are small pores on the leaf surface that allow gas exchange, letting carbon dioxide in and oxygen and water vapour out.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1936,
+      "width": 0.8119,
+      "height": 0.0535
+    },
+    {
+      "detectedQuestionNumber": "7",
+      "answerText": "Light intensity and carbon dioxide concentration are two factors that affect the rate of photosynthesis.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.2364,
+      "width": 0.8119,
+      "height": 0.0535
+    }
+  ],
+  "answerSheetPageCount": 1
+}

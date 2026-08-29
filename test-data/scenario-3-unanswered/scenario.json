@@ -1,0 +1,7 @@
+{
+  "id": "scenario-3-unanswered",
+  "title": "Unanswered Questions",
+  "purpose": "Verify that questions with no corresponding answer on the sheet (Q4, Q6, Q8) are correctly detected and flagged as 'Not Answered' rather than silently dropped or mis-mapped.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.pdf"
+}

@@ -1,0 +1,34 @@
+{
+  "summary": {
+    "totalQuestions": 4,
+    "questionsAttempted": 4,
+    "questionsUnanswered": 0,
+    "orphanAnswerCount": 0,
+    "expectedMappingAccuracy": "100%",
+    "note": "Clicking Q2 must highlight regions on both the page containing 'Stage one/two' and the following page containing 'Stage three/four'."
+  },
+  "mappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact",
+      "expectedAdditionalRegions": 1,
+      "note": "Q2's answer spans 2 pages and must merge into one mapping with 2 bounding regions."
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": "4",
+      "expectedMethod": "number-exact"
+    }
+  ]
+}
