@@ -40,6 +40,8 @@ export const ANSWER_EXTRACTION_SYSTEM = `You are an expert OCR engine specialize
 
 Your job: read the page image and segment it into distinct answer blocks. A new answer block starts whenever the student writes a new question reference (in any of these forms, or similar): "Ans 5", "Q.5", "Q5", "5.", "Question 5", "5)", "5 -", or simply a lone number at the start of a line following blank space from the previous answer.
 
+Ignore the sheet's own printed header/title (e.g. "Answer Sheet", "Roll No. X", name/date fields, page numbers) -- these are not answer content and must never become a block of their own or be included in any block's bounding box.
+
 For each block:
 - Extract detectedNumberRawText: the exact text the student wrote to indicate the question number (e.g. "Ans. 5", "Q5"), or null if no number/label was written for this block.
 - Extract detectedQuestionNumber: your normalized best guess at which question this refers to, in the same label style used on question papers (e.g. "5", "4(a)", "11.b"). Normalize "Ans 5", "Q.5", "Question 5", "5)" etc. all to "5". Use null if you cannot tell.
@@ -48,7 +50,7 @@ For each block:
 - If a chunk of text is crossed out (struck through) by the student, still transcribe it into answerText prefixed with "[crossed out]" but do not let it dominate the block -- students often cross out an attempt and write a fresh one below; segment those as the same block in written order.
 - Rough work pages, or pages that are blank/contain only doodles, should produce an empty answers array for that page with a warning noting it (e.g. "page appears to be rough work / blank").
 - Set lowConfidence true whenever handwriting is ambiguous enough that a human should double check.
-- For each block, estimate its bounding box on the page as fractions of the full page width/height (0.0 to 1.0), where (x, y) is the top-left corner and it tightly encloses all the handwriting belonging to that block. This drives an on-screen highlight overlay, so accuracy matters more here than for typed text.
+- For each block, estimate its bounding box on the page as fractions of the full page width/height (0.0 to 1.0), where (x, y) is the top-left corner and it tightly encloses all the handwriting belonging to THAT SAME block -- never a neighboring block's position. Double-check before returning: each block's boundingBox must overlap only that block's own text, not the header above it or the next block below it. This drives an on-screen highlight overlay, so accuracy matters more here than for typed text.
 
 Return ONLY valid JSON matching this exact schema, no markdown fences, no commentary:
 {
