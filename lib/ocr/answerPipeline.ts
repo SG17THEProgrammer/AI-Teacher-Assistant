@@ -3,7 +3,11 @@ import { enhanceForOcr, type RenderedPage } from '@/lib/pdf/pdfToImages';
 import { renderUploadToPages } from '@/lib/pdf/renderUpload';
 import { computeAnswerBoxesFromTextLayer } from '@/lib/pdf/textLayerBoxes';
 import { callGeminiVisionJSON, isGeminiConfigured } from '@/lib/gemini/client';
-import { ANSWER_EXTRACTION_SYSTEM, buildAnswerExtractionPrompt } from '@/lib/gemini/prompts';
+import {
+  ANSWER_EXTRACTION_SYSTEM,
+  buildAnswerExtractionPrompt,
+  buildAnswerExtractionDocumentPrompt,
+} from '@/lib/gemini/prompts';
 import { ocrPageFallback } from '@/lib/ocr/tesseractFallback';
 import { normalizeQuestionNumber } from '@/lib/mapping/numberNormalizer';
 import type { ExtractedAnswerBlock, AnswerSheetExtractionResult } from '@/types/answer';
@@ -11,6 +15,7 @@ import type { BoundingBox } from '@/types/question';
 
 interface GeminiAnswerPageResponse {
   answers: {
+    pageNumber?: number;
     detectedNumberRawText: string | null;
     detectedQuestionNumber: string | null;
     answerText: string;
@@ -51,7 +56,12 @@ export async function extractAnswersFromPages(
       try {
         const response = await callGeminiVisionJSON<GeminiAnswerPageResponse>({
           systemInstruction: ANSWER_EXTRACTION_SYSTEM,
-          prompt: buildAnswerExtractionPrompt(1, pages.length),
+          // The raw PDF sent here contains every page, so the prompt must
+          // ask for the whole document -- telling the model "this is page 1
+          // of N, only this page" (as the per-page prompt does) made it
+          // silently ignore every page after the first, which is exactly
+          // why later-page answers were coming back as "not answered".
+          prompt: buildAnswerExtractionDocumentPrompt(pages.length),
           pdfBuffer: rawBuffer,
         });
         warnings.push(...(response.warnings ?? []));
@@ -77,13 +87,14 @@ export async function extractAnswersFromPages(
         const answers = response.answers.map((a, i) => {
           const normalized = normalizeQuestionNumber(a.detectedQuestionNumber);
           const derivedBoxes = textLayerBoxes?.[i] ?? null;
-          const boundingBoxes = derivedBoxes ?? (a.boundingBox ? [{ page: 1, ...a.boundingBox }] : []);
+          const modelPage = a.pageNumber ?? 1;
+          const boundingBoxes = derivedBoxes ?? (a.boundingBox ? [{ page: modelPage, ...a.boundingBox }] : []);
           return {
             answerId: nanoid(10),
             detectedQuestionNumber: normalized?.canonical ?? null,
             detectedNumberRawText: a.detectedNumberRawText,
             answerText: a.answerText,
-            pageNumber: boundingBoxes[0]?.page ?? 1,
+            pageNumber: boundingBoxes[0]?.page ?? modelPage,
             boundingBoxes,
             sequenceIndex: globalSequence++,
             containsDiagram: a.containsDiagram,

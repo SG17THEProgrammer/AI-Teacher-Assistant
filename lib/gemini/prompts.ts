@@ -51,11 +51,13 @@ For each block:
 - Rough work pages, or pages that are blank/contain only doodles, should produce an empty answers array for that page with a warning noting it (e.g. "page appears to be rough work / blank").
 - Set lowConfidence true whenever handwriting is ambiguous enough that a human should double check.
 - For each block, estimate its bounding box on the page as fractions of the full page width/height (0.0 to 1.0), where (x, y) is the top-left corner and it tightly encloses all the handwriting belonging to THAT SAME block -- never a neighboring block's position. Double-check before returning: each block's boundingBox must overlap only that block's own text, not the header above it or the next block below it. This drives an on-screen highlight overlay, so accuracy matters more here than for typed text.
+- Set pageNumber to the 1-indexed page this block appears on. When you are given the whole document (multiple pages), you MUST read and segment answer blocks from every page, not just the first -- a student's answers commonly continue onto later pages, and skipping any page is a critical error.
 
 Return ONLY valid JSON matching this exact schema, no markdown fences, no commentary:
 {
   "answers": [
     {
+      "pageNumber": number,
       "detectedNumberRawText": string | null,
       "detectedQuestionNumber": string | null,
       "answerText": string,
@@ -71,6 +73,10 @@ Return ONLY valid JSON matching this exact schema, no markdown fences, no commen
 
 export function buildAnswerExtractionPrompt(pageNumber: number, totalPages: number): string {
   return `This is page ${pageNumber} of ${totalPages} of a student's handwritten answer sheet. Segment and transcribe all answer blocks visible on this page only, in the order they appear top to bottom. Follow the system instructions exactly.`;
+}
+
+export function buildAnswerExtractionDocumentPrompt(totalPages: number): string {
+  return `This document is a student's handwritten answer sheet with ${totalPages} page${totalPages === 1 ? '' : 's'}. Segment and transcribe all answer blocks from EVERY page, in the order they appear top to bottom, page by page in order. Do not stop after the first page. Set each block's pageNumber accordingly. Follow the system instructions exactly.`;
 }
 
 export const SEMANTIC_MATCH_SYSTEM = `You are an expert exam-grading assistant. You will be given one question and a short list of candidate answer blocks that could not be confidently matched to it by question-number alone. Decide which candidate (if any) best answers that specific question, using the content of the answer, not just any number written on it.
