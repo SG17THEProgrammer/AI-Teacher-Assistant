@@ -45,6 +45,18 @@ export async function semanticMatchQuestionToAnswers(
       images: [],
       maxRetries: 2,
     });
+    // The model can hallucinate an index outside the candidates array it
+    // was given (especially with very short candidate lists) -- never trust
+    // it blindly, since the caller indexes straight into `candidates` with
+    // no further checks.
+    if (
+      typeof result.bestIndex !== 'number' ||
+      !Number.isInteger(result.bestIndex) ||
+      result.bestIndex < 0 ||
+      result.bestIndex >= candidates.length
+    ) {
+      return { ...result, bestIndex: null };
+    }
     return result;
   } catch {
     return keywordOverlapFallback(question, candidates);
