@@ -30,9 +30,15 @@ export function ExamsScreen({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-auto p-6 md:p-10">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-8 flex items-center justify-between">
+    /*
+      Full-height scroll container. Uses h-full + overflow-y-auto so the
+      content scrolls inside the AppShell main area rather than making the
+      whole page taller. The inner wrapper uses max-w + mx-auto to keep
+      content readable on wide screens without excessive side padding.
+    */
+    <div className="h-full overflow-y-auto scrollbar-thin">
+      <div className="mx-auto w-full px-6 py-6 md:px-10 md:py-8">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-extrabold text-ink-900">Exams</h1>
             <p className="mt-1 text-sm text-ink-400">
@@ -51,7 +57,7 @@ export function ExamsScreen({
         </div>
 
         {history.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white py-20 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white py-16 text-center">
             <ClipboardList size={40} className="mb-4 text-ink-200" />
             <p className="text-base font-semibold text-ink-400">No exams yet</p>
             <p className="mt-1 text-sm text-ink-300">Upload a question paper and answer sheet to get started.</p>
@@ -77,7 +83,7 @@ export function ExamsScreen({
               >
                 <div
                   className={cn(
-                    'flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-xl text-white',
+                    'flex h-14 w-16 flex-shrink-0 flex-col items-center justify-center rounded-xl text-white',
                     entry.percent >= 80
                       ? 'bg-green-500'
                       : entry.percent >= 50
@@ -86,7 +92,7 @@ export function ExamsScreen({
                   )}
                 >
                   <span className="text-lg font-black leading-none">{Math.round(entry.percent)}%</span>
-                  <span className="text-[10px] font-medium opacity-80">{entry.score}</span>
+                  <span className="text-[10px] font-medium opacity-80">{entry.score} marks</span>
                 </div>
 
                 <div className="min-w-0 flex-1">

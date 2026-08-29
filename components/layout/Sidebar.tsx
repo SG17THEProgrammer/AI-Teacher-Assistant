@@ -34,8 +34,8 @@ export function Sidebar({
 
   if (collapsed) {
     return (
-      <aside className="hidden md:flex w-[76px] flex-shrink-0 flex-col items-center gap-4 border-r border-black/5 bg-white py-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900">
+      <aside className="hidden md:flex w-[56px] flex-shrink-0 flex-col items-center gap-4 border-r border-black/5 bg-white py-5 rounded-[15px] m-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900 -mt-3">
           <span className="text-lg font-black text-white">V</span>
         </div>
         <button
@@ -76,7 +76,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="hidden md:flex w-[300px] flex-shrink-0 flex-col gap-6 border-r border-black/5 bg-white p-5">
+    <aside className="hidden md:flex w-[250px] flex-shrink-0 flex-col gap-6 border-r border-black/5 bg-white p-5 rounded-[15px] m-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink-900">

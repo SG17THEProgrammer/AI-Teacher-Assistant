@@ -45,10 +45,10 @@ export function QuestionList({
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
+    <div className="flex h-full flex-col rounded-[15px] mr-1  border border-black-800">
+      <div className="flex items-center justify-between px-5 py-4">
         <h2 className="text-[15px] font-bold text-ink-900">
-          Extracted <span className="font-medium text-ink-400">(from question paper)</span>
+          Extracted Questions <span className="font-medium text-ink-400">(from question paper)</span>
         </h2>
         <Button
           variant="outline"
@@ -63,12 +63,12 @@ export function QuestionList({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-5 py-4">
-        <div className="mb-4">
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-5 pt-4">
+        {/* <div className="mb-4">
           <SummaryCard summary={grading.summary} />
-        </div>
+        </div> */}
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 -mt-4">
           {questions.map((question, i) => (
             <QuestionCard
               key={question.id}

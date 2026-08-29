@@ -53,22 +53,33 @@ export function ResultsScreen({ session, onBack }: { session: SessionData; onBac
 
   return (
     <TooltipProvider>
-      {/* Desktop: side-by-side, matches reference design's two-panel layout */}
-      <div className="hidden h-full md:flex">
-        <div className="w-[420px] flex-shrink-0 border-r border-black/5 bg-canvas-50">
+      {/*
+        Desktop two-panel layout.
+        Key fixes:
+        - Left panel: fixed width w-[380px] with flex-shrink-0 so it never
+          squishes regardless of browser zoom.
+        - Right panel: min-w-0 + flex-1 so it fills remaining space but
+          never forces the layout wider than the viewport.
+        - Both panels: overflow-hidden so their own internal scroll containers
+          work correctly and nothing bleeds out of the split.
+      */}
+      <div className="hidden h-full md:flex overflow-hidden">
+        <div className="w-[49%] flex-shrink-0 bg-transparent overflow-hidden  border border-red-600 rounded-tr-[15px] rounded-br-[15px]">
           {questionListEl}
         </div>
-        <div className="min-w-0 flex-1">{viewerEl}</div>
+        <div className="min-w-0 flex-1 overflow-hidden ">
+          {viewerEl}
+        </div>
       </div>
 
-      {/* Mobile: tabbed toggle, matches reference design's mobile screens */}
-      <div className="flex h-full flex-col md:hidden">
+      {/* Mobile: tabbed toggle */}
+      <div className="flex h-full flex-col md:hidden overflow-hidden">
         <Tabs
           value={mobileTab}
           onValueChange={(v) => setMobileTab(v as 'questions' | 'sheet')}
-          className="flex h-full flex-col"
+          className="flex h-full flex-col overflow-hidden"
         >
-          <div className="flex justify-center border-b border-black/5 bg-white py-3">
+          <div className="flex flex-shrink-0 justify-center border-b border-black/5 bg-white py-3">
             <TabsList>
               <TabsTrigger value="questions">Questions</TabsTrigger>
               <TabsTrigger value="sheet">Answer Sheet</TabsTrigger>

@@ -22,13 +22,31 @@ export function AppShell({
   }, [sidebarCollapsedByDefault]);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-canvas-DEFAULT">
-      <div className="flex h-full w-full overflow-hidden">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} onExamsClick={onExamsClick} />
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <TopBar onBack={onBack} />
-          <main className="flex-1 overflow-hidden bg-canvas-50">{children}</main>
-        </div>
+    /*
+      Root shell: always exactly the viewport, no overflow.
+      overflow-hidden at this level means the sidebar + content area
+      together can never push the page wider or taller than the viewport,
+      which prevents the blank-gap issues at non-100% browser zoom.
+    */
+    <div className="flex h-screen w-screen max-w-full overflow-hidden bg-canvas-DEFAULT">
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+        onExamsClick={onExamsClick}
+      />
+      {/*
+        Right-hand column: fills all remaining width, never shrinks below 0,
+        stacks TopBar + main vertically. overflow-hidden ensures the main
+        area's own scroll containers take over instead of the column itself
+        growing.
+      */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden mr-2">
+        <TopBar onBack={onBack} />
+        {/*
+          Main content area: flex-1 fills vertical space, overflow-hidden so
+          each screen (Exams, Upload, Results…) controls its own scrolling.
+        */}
+        <main className="flex-1 overflow-hidden bg-transparent rounded-[15px] mt-2 mb-2  border border-red-600">{children}</main>
       </div>
     </div>
   );

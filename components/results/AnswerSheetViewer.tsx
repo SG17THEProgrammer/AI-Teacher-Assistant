@@ -39,9 +39,6 @@ export function AnswerSheetViewer({
     [questions, activeQuestionId]
   );
 
-  // The set of answer blocks that should be highlighted right now: either
-  // the explicitly selected orphan answer, or every block (primary +
-  // multi-page continuations) that make up the active question's mapping.
   const highlightedBlocks = useMemo(() => {
     if (activeAnswerId) {
       const block = answersById.get(activeAnswerId);
@@ -52,8 +49,6 @@ export function AnswerSheetViewer({
     return ids.map((id) => answersById.get(id)).filter((b): b is ExtractedAnswerBlock => Boolean(b));
   }, [activeAnswerId, activeMapping, answersById]);
 
-  // Auto-navigate to the first page containing a highlighted block whenever
-  // the selection changes, then scroll that region into view.
   useEffect(() => {
     const firstBlock = highlightedBlocks[0];
     if (firstBlock) setPage(firstBlock.pageNumber);
@@ -80,8 +75,9 @@ export function AnswerSheetViewer({
       : '';
 
   return (
-    <div className="flex h-full flex-col bg-canvas-DEFAULT">
-      <div className="flex items-center justify-between bg-ink-900 px-4 py-2.5 text-white">
+    <div className="flex h-full flex-col bg-canvas-DEFAULT overflow-hidden rounded-[15px] ml-1">
+      {/* Top toolbar — always full width, never affected by zoom */}
+      <div className="flex flex-shrink-0 items-center justify-between bg-ink-900 px-4 py-2.5 text-white"> 
         <span className="text-sm font-semibold">Answer Sheet</span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
@@ -126,23 +122,38 @@ export function AnswerSheetViewer({
       </div>
 
       {spansMultiplePages && (
-        <div className="bg-brand-50 px-4 py-1.5 text-center text-xs font-medium text-brand-600">
+        <div className="flex-shrink-0 bg-brand-50 px-4 py-1.5 text-center text-xs font-medium text-brand-600">
           This answer spans multiple pages ({[...pagesWithHighlight].sort((a, b) => a - b).join(', ')}) —
           use the page arrows to see the rest.
         </div>
       )}
 
-      <div ref={scrollRef} className="flex-1 overflow-auto scrollbar-thin p-6">
+      {/*
+        Scroll container: always fills remaining height, scrolls in both axes
+        when zoom > 100. The inner wrapper uses `min-w-max` only when zoom
+        pushes content wider than the viewport so horizontal scroll appears;
+        at zoom ≤ 100 we stay flex-centered with no overflow.
+      */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-auto scrollbar-thin md:p-6 border-2 border-black"
+      >
+        {/*
+          The page card width is expressed as a percentage of the *scroll
+          container* (not the viewport), capped with max-w so it never looks
+          absurdly wide at 200%, and given a minimum so it never collapses
+          below readability at low zoom.
+          - zoom 100  → width: 100%, looks normal, centered
+          - zoom 125  → width: 125%, slightly wider than container → scrollbar
+          - zoom 50   → width: 50%, half-width, still centered nicely
+        */}
         <div
-          className="relative rounded-lg bg-white shadow-panel overflow-hidden"
+          className="relative rounded-lg bg-white shadow-panel overflow-hidden mx-auto  border border-red-600"
           style={{
             width: `${zoom}%`,
-            // Explicit instead of `mx-auto`: once zoom pushes the box wider
-            // than its scroll container, centering margins must resolve to
-            // 0 (left-aligned) so growth is visible immediately without
-            // having to scroll in both directions to find it.
-            marginLeft: zoom > 100 ? 0 : 'auto',
-            marginRight: zoom > 100 ? 0 : 'auto',
+            // At sub-100 zoom let it be centred and not fill parent edge-to-edge
+            maxWidth: zoom <= 100 ? '100%' : undefined,
+            minWidth: zoom <= 100 ? undefined : `${zoom}%`,
           }}
         >
           <PageRenderer
@@ -176,13 +187,6 @@ function PageRenderer({
   const [failed, setFailed] = useState(false);
   const src = `/api/session/${sessionId}/pages/${kind}/${page}`;
 
-  // A plain <img> lets the browser size this by its own natural width/height
-  // (via w-full h-auto below), so the wrapper always ends up exactly the
-  // size of the real rendered page -- which is what keeps the percentage-
-  // based highlight overlay aligned with the actual text. The previous
-  // <object> with a hardcoded pixel height forced a mismatched aspect
-  // ratio onto every page, stretching/cropping the image and throwing off
-  // every highlight box's position along with it.
   if (failed) {
     return (
       <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-ink-50 p-6 text-center text-sm text-ink-400">
