@@ -9,7 +9,7 @@ import type { ExtractedAnswerBlock } from '@/types/answer';
 // canvas with real blank rows between blocks. Bounding boxes are then
 // remapped into the new, taller image's coordinate space so the on-screen
 // highlight overlay stays pixel-aligned.
-const MIN_GAP_PX = 26;
+const MIN_GAP_PX = 50;
 
 /**
  * Mutates each answer's boundingBoxes in place to match the taller image,

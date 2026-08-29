@@ -75,7 +75,7 @@ export function AnswerSheetViewer({
       : '';
 
   return (
-    <div className="flex h-full flex-col  overflow-hidden rounded-tr-[15px] rounded-tl-[15px] ml-2">
+    <div className="flex h-full flex-col overflow-hidden rounded-tr-[15px] rounded-tl-[15px] ml-2">
       {/* Top toolbar — always full width, never affected by zoom */}
       <div className="flex flex-shrink-0 items-center justify-between bg-ink-900 px-4 py-2.5 text-white"> 
         <span className="text-sm font-semibold">Answer Sheet</span>
@@ -136,7 +136,7 @@ export function AnswerSheetViewer({
       */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-auto scrollbar-thin md:p-6"
+        className="flex-1 overflow-auto scrollbar-thin"
       >
         {/*
           100% zoom = the page's actual reference size (PAGE_MAX_WIDTH), not
@@ -147,7 +147,7 @@ export function AnswerSheetViewer({
         */}
         <div className="mx-auto" style={{ maxWidth: PAGE_MAX_WIDTH }}>
           <div
-            className="relative mx-auto overflow-hidden rounded-lg bg-white shadow-panel"
+            className="relative mx-auto overflow-hidden rounded-bl-lg rounded-br-lg bg-white shadow-panel border-2 border-black"
             style={{ width: `${zoom}%` }}
           >
             <PageRenderer

@@ -46,9 +46,9 @@ export function ExamsScreen({
       whole page taller. The inner wrapper uses max-w + mx-auto to keep
       content readable on wide screens without excessive side padding.
     */
-    <div className="h-full overflow-y-auto scrollbar-thin">
+    <div className="h-full overflow-y-auto scrollbar-thin border-2 border-black/40 rounded-[15px]">
       <div className="mx-auto w-full px-6 py-6 md:px-10 md:py-8">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between -mt-3">
           <div>
             <h1 className="text-2xl font-extrabold text-ink-900">Exams</h1>
             <p className="mt-1 text-sm text-ink-400">
@@ -109,10 +109,10 @@ export function ExamsScreen({
                   <p className="truncate text-[15px] font-semibold text-ink-900">
                     {entry.questionPaperName}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-ink-400">
+                  <p className="mt-0.5 truncate text-sm text-ink-700">
                     Answer: {entry.answerSheetName}
                   </p>
-                  <p className="mt-1 text-xs text-ink-300">
+                  <p className="mt-1 text-xs text-ink-500">
                     {/* Entries saved before createdAt existed fall back to savedAt. */}
                     Created {formatEntryDate(entry.createdAt ?? entry.savedAt)}
                     {entry.createdAt != null && entry.savedAt - entry.createdAt > 60_000 && (
