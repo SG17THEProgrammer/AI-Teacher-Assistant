@@ -6,10 +6,18 @@ interface PositionedRun {
   page: number;
   /** Top-origin fractions of the page, 0-1. */
   x: number;
-  y: number;
+  yTop: number;
+  yBottom: number;
   width: number;
-  height: number;
 }
+
+// Generous ascent/descent allowance (fraction of font size) so a run's box
+// reaches from just above the cap-height down past descenders (g, y, p) --
+// asymmetric ascent-only margins previously left the true baseline+descender
+// of the last line uncovered, cutting the highlight off before the real end
+// of the block's text.
+const ASCENT_RATIO = 0.82;
+const DESCENT_RATIO = 0.28;
 
 /**
  * Reads every text run on every page of a typed/embedded-text PDF, with its
@@ -30,16 +38,16 @@ async function extractTextRuns(pdfBuffer: Buffer): Promise<PositionedRun[]> {
       const [a, b, c, d, e, f] = item.transform;
       const fontHeight = Math.hypot(c, d) || Math.hypot(a, b);
       const width = item.width ?? Math.hypot(a, b) * item.str.length;
-      // transform's (e, f) is the glyph baseline in bottom-origin PDF space;
-      // approximate the run's top edge with a small ascent allowance.
-      const topPdf = f + fontHeight * 0.85;
+      // transform's (e, f) is the glyph baseline in bottom-origin PDF space.
+      const topPdf = f + fontHeight * ASCENT_RATIO;
+      const bottomPdf = f - fontHeight * DESCENT_RATIO;
       runs.push({
         str: item.str,
         page: pageNumber,
         x: e / viewport.width,
-        y: (viewport.height - topPdf) / viewport.height,
+        yTop: (viewport.height - topPdf) / viewport.height,
+        yBottom: (viewport.height - bottomPdf) / viewport.height,
         width: width / viewport.width,
-        height: fontHeight / viewport.height,
       });
     }
   }
@@ -66,7 +74,7 @@ export async function computeAnswerBoxesFromTextLayer(
 
   // Order runs by page then vertical position (top to bottom), which is how
   // a typed answer sheet is laid out and how `sequenceIndex` orders blocks.
-  const ordered = [...runs].sort((r1, r2) => r1.page - r2.page || r1.y - r2.y);
+  const ordered = [...runs].sort((r1, r2) => r1.page - r2.page || r1.yTop - r2.yTop);
 
   const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
@@ -98,16 +106,20 @@ export async function computeAnswerBoxesFromTextLayer(
     if (runsInBlock.length === 0) return null;
 
     const minX = Math.min(...runsInBlock.map((r) => r.x));
-    const minY = Math.min(...runsInBlock.map((r) => r.y));
+    const minY = Math.min(...runsInBlock.map((r) => r.yTop));
     const maxX = Math.max(...runsInBlock.map((r) => r.x + r.width));
-    const maxY = Math.max(...runsInBlock.map((r) => r.y + r.height));
+    const maxY = Math.max(...runsInBlock.map((r) => r.yBottom));
 
+    // A little breathing room so the border doesn't sit flush against the
+    // glyphs it's highlighting.
+    const padX = 0.01;
+    const padY = 0.006;
     return [{
       page: startRun.page,
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
+      x: Math.max(0, minX - padX),
+      y: Math.max(0, minY - padY),
+      width: Math.min(1, maxX + padX) - Math.max(0, minX - padX),
+      height: Math.min(1, maxY + padY) - Math.max(0, minY - padY),
     }];
   });
 }

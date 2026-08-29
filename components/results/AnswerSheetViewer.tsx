@@ -135,7 +135,7 @@ export function AnswerSheetViewer({
       <div ref={scrollRef} className="flex-1 overflow-auto scrollbar-thin p-6">
         <div
           className="relative mx-auto rounded-lg bg-white shadow-panel overflow-hidden"
-          style={{ width: `${zoom * 6.4}px`, maxWidth: '100%' }}
+          style={{ width: `${zoom * 9}px`, maxWidth: '100%' }}
         >
           <PageRenderer
             sessionId={sessionId}
