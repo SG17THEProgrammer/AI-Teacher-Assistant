@@ -2,11 +2,11 @@
 
 import { ArrowLeft, HelpCircle, Bell, Sparkles, ChevronDown, ClipboardList } from 'lucide-react';
 
-export function TopBar({ breadcrumb = 'Exams' }: { breadcrumb?: string }) {
+export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; onBack?: () => void }) {
   return (
     <header className="flex h-[73px] flex-shrink-0 items-center justify-between border-b border-black/5 bg-white px-4 md:px-6">
       <div className="flex items-center gap-3 text-ink-700">
-        <button aria-label="Back" className="text-ink-900">
+        <button aria-label="Back" className="text-ink-900" onClick={onBack}>
           <ArrowLeft size={20} />
         </button>
         <ClipboardList size={16} className="text-ink-400" />

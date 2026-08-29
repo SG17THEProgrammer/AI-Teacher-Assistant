@@ -7,18 +7,14 @@ import { TopBar } from './TopBar';
 export function AppShell({
   children,
   sidebarCollapsedByDefault = false,
+  onBack,
 }: {
   children: React.ReactNode;
   sidebarCollapsedByDefault?: boolean;
+  onBack?: () => void;
 }) {
   const [collapsed, setCollapsed] = useState(sidebarCollapsedByDefault);
 
-  // `useState`'s initial value only applies on first mount, but AppShell
-  // stays mounted across phase transitions (upload -> processing ->
-  // results) since only its children swap out. Re-sync collapse state
-  // whenever the caller's desired default changes (e.g. entering the
-  // "Extracting..." phase, which the design shows with a collapsed
-  // sidebar) while still letting the teacher manually toggle afterward.
   useEffect(() => {
     setCollapsed(sidebarCollapsedByDefault);
   }, [sidebarCollapsedByDefault]);
@@ -28,7 +24,7 @@ export function AppShell({
       <div className="flex h-full w-full overflow-hidden">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <TopBar />
+          <TopBar onBack={onBack} />
           <main className="flex-1 overflow-hidden bg-canvas-50">{children}</main>
         </div>
       </div>

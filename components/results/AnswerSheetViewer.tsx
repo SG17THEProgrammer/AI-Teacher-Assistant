@@ -134,15 +134,14 @@ export function AnswerSheetViewer({
 
       <div ref={scrollRef} className="flex-1 overflow-auto scrollbar-thin p-6">
         <div
-          className="relative mx-auto rounded-lg bg-white shadow-panel"
-          style={{ width: `${zoom * 6.4}px`, maxWidth: '100%' }}
+          className="relative mx-auto rounded-lg bg-white shadow-panel overflow-hidden"
+          style={{ width: `${zoom * 6.4}px`, maxWidth: '100%', minHeight: '800px' }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/session/${sessionId}/pages/answerSheet/${page}`}
-            alt={`Answer sheet page ${page}`}
-            className="block w-full rounded-lg"
-            draggable={false}
+          <PageRenderer
+            sessionId={sessionId}
+            kind="answerSheet"
+            page={page}
+            zoom={zoom}
           />
           {currentPageBoxes.map((box, i) => (
             <HighlightOverlay
@@ -155,5 +154,32 @@ export function AnswerSheetViewer({
         </div>
       </div>
     </div>
+  );
+}
+
+function PageRenderer({
+  sessionId,
+  kind,
+  page,
+  zoom,
+}: {
+  sessionId: string;
+  kind: string;
+  page: number;
+  zoom: number;
+}) {
+  const src = `/api/session/${sessionId}/pages/${kind}/${page}`;
+  // Use object tag — browser renders PDF natively and images both work
+  return (
+    <object
+      data={src}
+      type="application/pdf"
+      className="block w-full rounded-lg"
+      style={{ height: `${zoom * 9}px`, minHeight: '800px' }}
+    >
+      {/* Fallback for image uploads */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={`Answer sheet page ${page}`} className="block w-full rounded-lg" draggable={false} />
+    </object>
   );
 }

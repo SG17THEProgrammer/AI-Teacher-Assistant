@@ -39,7 +39,7 @@ export function QuestionCard({
         isActive ? 'border-brand-400 shadow-floating ring-1 ring-brand-200' : 'border-black/5'
       )}
     >
-      <button className="flex w-full items-start gap-3 text-left" onClick={onSelect}>
+      <div className="flex w-full items-start gap-3 text-left cursor-pointer" onClick={onSelect}>
         <span
           className={cn(
             'mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold',
@@ -71,7 +71,7 @@ export function QuestionCard({
             <ChevronDown size={16} className={cn('transition-transform', isExpanded && 'rotate-180')} />
           </button>
         </span>
-      </button>
+      </div>
 
       <AnimatePresence initial={false}>
         {isExpanded && (
