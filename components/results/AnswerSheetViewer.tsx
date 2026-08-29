@@ -134,8 +134,16 @@ export function AnswerSheetViewer({
 
       <div ref={scrollRef} className="flex-1 overflow-auto scrollbar-thin p-6">
         <div
-          className="relative mx-auto rounded-lg bg-white shadow-panel overflow-hidden"
-          style={{ width: `${zoom * 9}px`, maxWidth: '100%' }}
+          className="relative rounded-lg bg-white shadow-panel overflow-hidden"
+          style={{
+            width: `${zoom}%`,
+            // Explicit instead of `mx-auto`: once zoom pushes the box wider
+            // than its scroll container, centering margins must resolve to
+            // 0 (left-aligned) so growth is visible immediately without
+            // having to scroll in both directions to find it.
+            marginLeft: zoom > 100 ? 0 : 'auto',
+            marginRight: zoom > 100 ? 0 : 'auto',
+          }}
         >
           <PageRenderer
             sessionId={sessionId}
