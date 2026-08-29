@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { enhanceForOcr, type RenderedPage } from '@/lib/pdf/pdfToImages';
 import { renderUploadToPages } from '@/lib/pdf/renderUpload';
 import { computeAnswerBoxesFromTextLayer } from '@/lib/pdf/textLayerBoxes';
+import { padAnswerBoundingBoxes } from '@/lib/pdf/boxPadding';
 import { callGeminiVisionJSON, isGeminiConfigured } from '@/lib/gemini/client';
 import {
   ANSWER_EXTRACTION_SYSTEM,
@@ -104,6 +105,7 @@ export async function extractAnswersFromPages(
           };
         });
         pages.forEach((_, idx) => onPageDone?.(idx + 1, pages.length));
+        padAnswerBoundingBoxes(answers);
         return { answers, pageCount: pages.length, warnings };
       } catch (err) {
         warnings.push(`AI extraction failed (${err instanceof Error ? err.message : 'unknown error'}). Falling back to per-page rendering.`);
@@ -192,5 +194,6 @@ export async function extractAnswersFromPages(
     answer.sequenceIndex = globalSequence++;
   }
 
+  padAnswerBoundingBoxes(answers);
   return { answers, pageCount: pages.length, warnings };
 }

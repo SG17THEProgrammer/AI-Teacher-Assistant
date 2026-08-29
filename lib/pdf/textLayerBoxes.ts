@@ -115,37 +115,17 @@ export async function computeAnswerBoxesFromTextLayer(
     };
   });
 
-  const padX = 0.01;
-  const desiredPadY = 0.006;
-
-  return tightBoxes.map((box, i) => {
+  // Returned tight (unpadded) -- outward breathing-room padding is applied
+  // once, uniformly across every box regardless of source, by
+  // padAnswerBoundingBoxes() in lib/pdf/boxPadding.ts.
+  return tightBoxes.map((box) => {
     if (!box) return null;
-
-    // Find the closest other block's tight box on the same page, above and
-    // below this one, to cap padding so it can never bite into a neighbor's
-    // own text -- some source documents space answers only a few points
-    // apart, well under twice the desired padding.
-    let gapAbove = Infinity;
-    let gapBelow = Infinity;
-    for (const other of tightBoxes) {
-      if (!other || other.page !== box.page) continue;
-      if (other.maxY <= box.minY) gapAbove = Math.min(gapAbove, box.minY - other.maxY);
-      if (other.minY >= box.maxY) gapBelow = Math.min(gapBelow, other.minY - box.maxY);
-    }
-    const padTop = Math.min(desiredPadY, gapAbove / 2);
-    const padBottom = Math.min(desiredPadY, gapBelow / 2);
-
-    const x = Math.max(0, box.minX - padX);
-    const y = Math.max(0, box.minY - padTop);
-    const right = Math.min(1, box.maxX + padX);
-    const bottom = Math.min(1, box.maxY + padBottom);
-
     return [{
       page: box.page,
-      x,
-      y,
-      width: right - x,
-      height: bottom - y,
+      x: box.minX,
+      y: box.minY,
+      width: box.maxX - box.minX,
+      height: box.maxY - box.minY,
     }];
   });
 }
