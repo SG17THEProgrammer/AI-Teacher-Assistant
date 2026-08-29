@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { openDB, type IDBPDatabase } from 'idb';
 import type { SessionData } from '@/types/session';
 
-const HISTORY_KEY = 'veda_history';
+const DB_NAME = 'veda_history_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'history';
 const MAX_HISTORY = 20;
 
 export interface HistoryEntry {
@@ -16,18 +19,24 @@ export interface HistoryEntry {
   percent: number; // 0-100
 }
 
+function getDb(): Promise<IDBPDatabase> {
+  return openDB(DB_NAME, DB_VERSION, {
+    upgrade(db) {
+      const store = db.createObjectStore(STORE_NAME, { keyPath: 'sessionId' });
+      store.createIndex('savedAt', 'savedAt');
+    },
+  });
+}
+
 // ── Write ────────────────────────────────────────────────────────────────────
 
-export function saveSessionToHistory(sessionId: string, data: SessionData) {
+export async function saveSessionToHistory(sessionId: string, data: SessionData) {
   try {
-    const history = loadHistory();
-    const existing = history.findIndex((e) => e.sessionId === sessionId);
-
     const summary = data.grading?.summary;
     const score = summary
-      ? `${summary.totalAwarded}/${summary.totalPossible}`
+      ? `${summary.totalMarksAwarded}/${summary.totalMarksPossible}`
       : '—';
-    const percent = summary?.percentScore ?? 0;
+    const percent = summary?.percentage ?? 0;
 
     const entry: HistoryEntry = {
       sessionId,
@@ -39,37 +48,39 @@ export function saveSessionToHistory(sessionId: string, data: SessionData) {
       percent,
     };
 
-    if (existing >= 0) {
-      history[existing] = entry; // update in place
-    } else {
-      history.unshift(entry); // newest first
-    }
-
-    // Keep only the most recent MAX_HISTORY entries
-    const trimmed = history.slice(0, MAX_HISTORY);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+    const db = await getDb();
+    await db.put(STORE_NAME, entry);
+    await trimHistory(db);
   } catch {
-    // storage full — silently skip
+    // storage unavailable — silently skip
   }
 }
 
-export function removeFromHistory(sessionId: string) {
+async function trimHistory(db: IDBPDatabase) {
+  const all = await db.getAllFromIndex(STORE_NAME, 'savedAt');
+  const excess = all.length - MAX_HISTORY;
+  if (excess <= 0) return;
+  // 'savedAt' index yields oldest-first; drop the oldest excess entries
+  const stale = all.slice(0, excess);
+  await Promise.all(stale.map((e) => db.delete(STORE_NAME, e.sessionId)));
+}
+
+export async function removeFromHistory(sessionId: string) {
   try {
-    const history = loadHistory().filter((e) => e.sessionId !== sessionId);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    const db = await getDb();
+    await db.delete(STORE_NAME, sessionId);
   } catch {}
 }
 
 // ── Read ─────────────────────────────────────────────────────────────────────
 
-function loadHistory(): HistoryEntry[] {
+async function loadHistory(): Promise<HistoryEntry[]> {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    const parsed: HistoryEntry[] = JSON.parse(raw);
-    // Drop entries older than 7 days
+    const db = await getDb();
+    const all = await db.getAllFromIndex(STORE_NAME, 'savedAt');
+    // Drop entries older than 7 days, newest first
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return parsed.filter((e) => e.savedAt > cutoff);
+    return all.filter((e) => e.savedAt > cutoff).reverse();
   } catch {
     return [];
   }
@@ -78,13 +89,19 @@ function loadHistory(): HistoryEntry[] {
 export function useHistory(version?: number): HistoryEntry[] {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   useEffect(() => {
-    setHistory(loadHistory());
+    let cancelled = false;
+    loadHistory().then((h) => {
+      if (!cancelled) setHistory(h);
+    });
+    return () => {
+      cancelled = true;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
   return history;
 }
 
-export function getMostRecentSession(): HistoryEntry | null {
-  const h = loadHistory();
+export async function getMostRecentSession(): Promise<HistoryEntry | null> {
+  const h = await loadHistory();
   return h[0] ?? null;
 }

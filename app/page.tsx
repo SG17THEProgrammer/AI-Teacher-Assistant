@@ -48,8 +48,9 @@ export default function Home() {
   // Save to history whenever a session completes
   useEffect(() => {
     if (session && sessionId && phase === 'results' && session.stage === 'done') {
-      saveSessionToHistory(sessionId, session);
-      setHistoryVersion((v) => v + 1);
+      saveSessionToHistory(sessionId, session).then(() => {
+        setHistoryVersion((v) => v + 1);
+      });
     }
   }, [session, sessionId, phase]);
 

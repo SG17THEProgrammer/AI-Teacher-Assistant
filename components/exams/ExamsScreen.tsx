@@ -22,8 +22,8 @@ export function ExamsScreen({
   const handleDelete = (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
     setDeleting(sessionId);
-    setTimeout(() => {
-      removeFromHistory(sessionId);
+    setTimeout(async () => {
+      await removeFromHistory(sessionId);
       onHistoryChange();
       setDeleting(null);
     }, 300);
