@@ -1,0 +1,54 @@
+{
+  "questions": [
+    {
+      "questionNumber": "1",
+      "questionText": "What is photosynthesis?",
+      "totalMarks": 3
+    },
+    {
+      "questionNumber": "2",
+      "questionText": "Name the raw materials required for photosynthesis.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "3",
+      "questionText": "Where does photosynthesis mainly take place in a leaf?",
+      "totalMarks": 2
+    }
+  ],
+  "answers": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "Photosynthesis is the process by which green plants make their own food using sunlight, water, and carbon dioxide, releasing oxygen as a byproduct."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The raw materials are water, carbon dioxide, and sunlight (plus chlorophyll)."
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "Photosynthesis mainly takes place in the chloroplasts of leaf cells."
+    }
+  ],
+  "expectedMappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    }
+  ],
+  "unansweredQuestions": [],
+  "orphanAnswers": [],
+  "answerSheetPageCount": 1,
+  "note": "answer-sheet.jpg is a raster image, not a PDF -- upload it directly to exercise the no-text-layer / image-upload path."
+}

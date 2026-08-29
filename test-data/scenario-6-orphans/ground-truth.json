@@ -1,0 +1,157 @@
+{
+  "questions": [
+    {
+      "questionNumber": "1",
+      "questionText": "What is the boiling point of water at sea level in Celsius?",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "2",
+      "questionText": "What is the freezing point of water in Celsius?",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "3",
+      "questionText": "Name the process by which water changes from liquid to gas.",
+      "totalMarks": 2
+    },
+    {
+      "questionNumber": "4",
+      "questionText": "Name the process by which water vapor changes back into liquid.",
+      "totalMarks": 2
+    }
+  ],
+  "answers": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The boiling point of water at sea level is 100 degrees Celsius."
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The freezing point of water is 0 degrees Celsius."
+    },
+    {
+      "detectedQuestionNumber": null,
+      "answerText": "Water is essential for all living things and covers most of Earth's surface."
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "The process is called evaporation, where liquid water turns into water vapor."
+    },
+    {
+      "detectedQuestionNumber": "9",
+      "answerText": "The process is called condensation, where water vapor turns back into liquid water."
+    }
+  ],
+  "expectedMappings": [
+    {
+      "questionNumber": "1",
+      "mappedToAnswerNumber": "1",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "2",
+      "mappedToAnswerNumber": "2",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "3",
+      "mappedToAnswerNumber": "3",
+      "expectedMethod": "number-exact"
+    },
+    {
+      "questionNumber": "4",
+      "mappedToAnswerNumber": null,
+      "expectedMethod": "unanswered"
+    }
+  ],
+  "unansweredQuestions": [
+    "4"
+  ],
+  "orphanAnswers": [
+    "the unlabeled 'water is essential...' block (no question number written, off-topic filler)",
+    "the '9' labeled condensation answer (no question 9 exists -- likely meant for Q4, a good semantic-match candidate)"
+  ],
+  "questionBoundingBoxes": [
+    {
+      "questionNumber": "1",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "2",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0903,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "3",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1152,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "questionNumber": "4",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1402,
+      "width": 0.8119,
+      "height": 0.0356
+    }
+  ],
+  "answerBoundingBoxes": [
+    {
+      "detectedQuestionNumber": "1",
+      "answerText": "The boiling point of water at sea level is 100 degrees Celsius.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0653,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "detectedQuestionNumber": "2",
+      "answerText": "The freezing point of water is 0 degrees Celsius.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.0903,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "detectedQuestionNumber": null,
+      "answerText": "Water is essential for all living things and covers most of Earth's surface.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1152,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "detectedQuestionNumber": "3",
+      "answerText": "The process is called evaporation, where liquid water turns into water vapor.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1402,
+      "width": 0.8119,
+      "height": 0.0356
+    },
+    {
+      "detectedQuestionNumber": "9",
+      "answerText": "The process is called condensation, where water vapor turns back into liquid water.",
+      "page": 1,
+      "x": 0.0941,
+      "y": 0.1651,
+      "width": 0.8119,
+      "height": 0.0356
+    }
+  ],
+  "answerSheetPageCount": 1
+}

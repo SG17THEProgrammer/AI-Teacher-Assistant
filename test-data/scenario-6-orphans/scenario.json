@@ -1,0 +1,7 @@
+{
+  "id": "scenario-6-orphans",
+  "title": "Orphan Answers + Unanswered Question",
+  "purpose": "Verify orphan-answer detection (an unlabeled block and a wrongly-numbered 'Ans 9' block with no matching question) alongside one genuinely unanswered question (Q4), and whether semantic matching correctly proposes Ans 9 as a candidate for Q4.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.pdf"
+}

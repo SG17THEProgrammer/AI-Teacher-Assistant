@@ -1,0 +1,7 @@
+{
+  "id": "scenario-5-image-upload",
+  "title": "Image Upload (no PDF text layer)",
+  "purpose": "Verify the pipeline when the answer sheet is uploaded as a JPEG photo rather than a PDF -- exercises normalizeImageUpload() and forces Gemini vision-only extraction with no deterministic text-layer bounding boxes available.",
+  "questionPaperFile": "question-paper.pdf",
+  "answerSheetFile": "answer-sheet.jpg"
+}
