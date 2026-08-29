@@ -1,6 +1,13 @@
 import path from 'node:path';
 import sharp from 'sharp';
-import { createCanvas } from 'canvas';
+import { createCanvas, DOMMatrix, Path2D } from '@napi-rs/canvas';
+
+// pdfjs's glyph/path rendering needs a real DOMMatrix/Path2D; Node has
+// neither, and pdfjs's own polyfill only knows how to source them from the
+// classic `canvas` package, which we don't use (it needs native compilation
+// via node-gyp/Visual Studio, unlike @napi-rs/canvas's prebuilt binaries).
+if (!(globalThis as any).DOMMatrix) (globalThis as any).DOMMatrix = DOMMatrix;
+if (!(globalThis as any).Path2D) (globalThis as any).Path2D = Path2D;
 
 export async function getPdfPageCount(buffer: Buffer): Promise<number> {
   const pdfParse = (await import('pdf-parse')).default;
@@ -13,6 +20,30 @@ export interface RenderedPage {
   pngBuffer: Buffer;
   width: number;
   height: number;
+}
+
+// Real 2D canvas backed by @napi-rs/canvas so pdfjs's fill/stroke/text/image
+// drawing paths actually paint pixels (the previous stub no-op'd all of
+// those, so every rendered PDF page came out blank). Also used for pdfjs's
+// own auxiliary canvases (Type3 glyphs, soft masks, patterns).
+class NodeCanvasFactory {
+  create(width: number, height: number) {
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+    return { canvas, context };
+  }
+
+  reset(canvasAndContext: any, width: number, height: number) {
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+
+  destroy(canvasAndContext: any) {
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+    canvasAndContext.canvas = null;
+    canvasAndContext.context = null;
+  }
 }
 
 export async function renderPdfToImages(
@@ -31,6 +62,8 @@ export async function renderPdfToImages(
     (globalThis as any).pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs' as any);
   }
 
+  const canvasFactory = new NodeCanvasFactory();
+
   // Non-embedded fonts (e.g. Helvetica) are drawn as vector glyph paths built
   // from pdfjs's bundled standard font metrics — without this pdfjs silently
   // drops every glyph it can't resolve, rendering text-only pages blank.
@@ -39,9 +72,6 @@ export async function renderPdfToImages(
   // with ENOENT since fs treats it as a literal path, not a URL to resolve).
   const standardFontDataUrl = `${path.join(process.cwd(), 'node_modules/pdfjs-dist/standard_fonts')}${path.sep}`;
 
-  // No CanvasFactory override here — pdfjs's own Node build already creates
-  // auxiliary canvases (Type3 glyphs, soft masks, patterns) via the `canvas`
-  // package when running under Node, as long as it's installed.
   const doc = await pdfjsLib.getDocument({
     data: new Uint8Array(pdfBuffer),
     // useSystemFonts assumes @font-face/OS font rendering (disableFontFace:
@@ -51,6 +81,7 @@ export async function renderPdfToImages(
     // stayed null) — every standard-font page rendered with no visible text.
     useSystemFonts: false,
     disableFontFace: true,
+    CanvasFactory: NodeCanvasFactory,
     useWorkerFetch: false,
     isEvalSupported: false,
     disableRange: true,
@@ -74,15 +105,16 @@ export async function renderPdfToImages(
 
     const width = Math.ceil(finalViewport.width);
     const height = Math.ceil(finalViewport.height);
-    const canvas = createCanvas(width, height);
-    const context = canvas.getContext('2d');
+    const canvasAndContext = canvasFactory.create(width, height);
 
     await page.render({
-      canvasContext: context,
+      canvasContext: canvasAndContext.context,
       viewport: finalViewport,
     } as any).promise;
 
-    const pngBuffer = canvas.toBuffer('image/png');
+    const pngBuffer = await canvasAndContext.canvas.encode('png');
+
+    canvasFactory.destroy(canvasAndContext);
     pages.push({ pageNumber, pngBuffer, width, height });
   }
 

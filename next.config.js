@@ -17,7 +17,7 @@ const nextConfig = {
         'tesseract.js',
         'pdfjs-dist',
         /^pdfjs-dist\/.*/,   // catches pdfjs-dist/legacy/build/pdf.mjs etc.
-        'canvas',           // native module (node-canvas) used to rasterize PDFs
+        '@napi-rs/canvas',  // native module used to rasterize PDF pages
       ];
     } else {
       // pdfjs-dist references an optional Node `canvas` module that must
