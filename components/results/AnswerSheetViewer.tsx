@@ -136,44 +136,41 @@ export function AnswerSheetViewer({
       */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-auto scrollbar-thin"
+        className="flex-1 overflow-auto scrollbar-thin md:p-6"
       >
         {/*
-          The page card width is expressed as a percentage of the *scroll
-          container* (not the viewport), capped with max-w so it never looks
-          absurdly wide at 200%, and given a minimum so it never collapses
-          below readability at low zoom.
-          - zoom 100  → width: 100%, looks normal, centered
-          - zoom 125  → width: 125%, slightly wider than container → scrollbar
-          - zoom 50   → width: 50%, half-width, still centered nicely
+          100% zoom = the page's actual reference size (PAGE_MAX_WIDTH), not
+          "stretch to fill the panel" -- otherwise 100% looks artificially
+          full-bleed on a wide panel, and zoom appears to arbitrarily resize
+          the page rather than scale it from a real baseline. Zoom then
+          scales that fixed reference up/down, same as Word/Docs/PDF.js.
         */}
-        <div
-          className="relative bg-canvas shadow-panel overflow-hidden border-black-200 border-2 "
-          style={{
-            width: `${zoom}%`,
-            // At sub-100 zoom let it be centred and not fill parent edge-to-edge
-            maxWidth: zoom <= 100 ? '100%' : undefined,
-            minWidth: zoom <= 100 ? undefined : `${zoom}%`,
-          }}
-        >
-          <PageRenderer
-            sessionId={sessionId}
-            kind="answerSheet"
-            page={page}
-          />
-          {currentPageBoxes.map((box, i) => (
-            <HighlightOverlay
-              key={i}
-              box={box}
-              label={label}
-              registerRef={i === 0 ? (el) => (highlightRef.current = el) : undefined}
+        <div className="mx-auto" style={{ maxWidth: PAGE_MAX_WIDTH }}>
+          <div
+            className="relative mx-auto overflow-hidden rounded-lg bg-white shadow-panel"
+            style={{ width: `${zoom}%` }}
+          >
+            <PageRenderer
+              sessionId={sessionId}
+              kind="answerSheet"
+              page={page}
             />
-          ))}
+            {currentPageBoxes.map((box, i) => (
+              <HighlightOverlay
+                key={i}
+                box={box}
+                label={label}
+                registerRef={i === 0 ? (el) => (highlightRef.current = el) : undefined}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const PAGE_MAX_WIDTH = 850;
 
 function PageRenderer({
   sessionId,

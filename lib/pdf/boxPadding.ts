@@ -1,7 +1,7 @@
 import type { ExtractedAnswerBlock } from '@/types/answer';
 
 const PAD_X = 0.01;
-const DESIRED_PAD_Y = 0.008;
+const DESIRED_PAD_Y = 0.012;
 
 /**
  * Adds outward breathing room to every answer's bounding box(es), clamped

@@ -74,8 +74,13 @@ body {
 
 .highlight-tab {
   position: absolute;
-  top: -9px;
+  top: 0;
   left: -2px;
+  /* Anchored by its own bottom edge, not a fixed top offset, so the tab
+     always sits fully above the box regardless of the tab's own rendered
+     height -- a fixed offset previously left part of the tab overlapping
+     the box's first line. */
+  transform: translateY(calc(-100% - 3px));
   background-color: #2fa84f;
   color: white;
   font-size: 11px;
