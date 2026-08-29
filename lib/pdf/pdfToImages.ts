@@ -1,4 +1,6 @@
+import path from 'node:path';
 import sharp from 'sharp';
+import { createCanvas } from 'canvas';
 
 export async function getPdfPageCount(buffer: Buffer): Promise<number> {
   const pdfParse = (await import('pdf-parse')).default;
@@ -11,54 +13,6 @@ export interface RenderedPage {
   pngBuffer: Buffer;
   width: number;
   height: number;
-}
-
-class NodeCanvasFactory {
-  create(width: number, height: number) {
-    const canvas = {
-      width,
-      height,
-      _data: new Uint8ClampedArray(width * height * 4),
-    } as any;
-    const context = {
-      canvas, // pdfjs does ctx.canvas.width — must be named 'canvas'
-      getTransform() { return { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }; },
-      save() {}, restore() {},
-      scale() {}, transform() {}, translate() {},
-      setTransform() {}, resetTransform() {},
-      beginPath() {}, closePath() {},
-      fill() {}, stroke() {}, clip() {},
-      moveTo() {}, lineTo() {}, bezierCurveTo() {}, quadraticCurveTo() {}, arc() {}, arcTo() {},
-      rect() {}, fillRect() {}, clearRect() {}, strokeRect() {},
-      createLinearGradient() { return { addColorStop() {} }; },
-      createRadialGradient() { return { addColorStop() {} }; },
-      createPattern() { return null; },
-      drawImage() {},
-      putImageData(imgData: any, x: number, y: number) {
-        canvas._data.set(imgData.data, (y * canvas.width + x) * 4);
-      },
-      getImageData(_x: number, _y: number, w: number, h: number) {
-        return { data: new Uint8ClampedArray(w * h * 4), width: w, height: h };
-      },
-      createImageData(w: number, h: number) {
-        return { data: new Uint8ClampedArray(w * h * 4), width: w, height: h };
-      },
-      measureText() { return { width: 0, actualBoundingBoxAscent: 0, actualBoundingBoxDescent: 0 }; },
-      fillText() {}, strokeText() {},
-      isPointInPath() { return false; },
-    } as any;
-    return { canvas, context };
-  }
-
-  reset(canvasAndContext: any, width: number, height: number) {
-    canvasAndContext.canvas.width = width;
-    canvasAndContext.canvas.height = height;
-    canvasAndContext.canvas._data = new Uint8ClampedArray(width * height * 4);
-  }
-
-  destroy(canvasAndContext: any) {
-    canvasAndContext.canvas._data = null;
-  }
 }
 
 export async function renderPdfToImages(
@@ -77,17 +31,31 @@ export async function renderPdfToImages(
     (globalThis as any).pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs' as any);
   }
 
-  const canvasFactory = new NodeCanvasFactory();
+  // Non-embedded fonts (e.g. Helvetica) are drawn as vector glyph paths built
+  // from pdfjs's bundled standard font metrics — without this pdfjs silently
+  // drops every glyph it can't resolve, rendering text-only pages blank.
+  // pdfjs's Node factory passes this straight to fs.readFile, not a URL
+  // parser, so it must be a plain filesystem path (a file:// string fails
+  // with ENOENT since fs treats it as a literal path, not a URL to resolve).
+  const standardFontDataUrl = `${path.join(process.cwd(), 'node_modules/pdfjs-dist/standard_fonts')}${path.sep}`;
 
+  // No CanvasFactory override here — pdfjs's own Node build already creates
+  // auxiliary canvases (Type3 glyphs, soft masks, patterns) via the `canvas`
+  // package when running under Node, as long as it's installed.
   const doc = await pdfjsLib.getDocument({
     data: new Uint8Array(pdfBuffer),
-    useSystemFonts: true,
+    // useSystemFonts assumes @font-face/OS font rendering (disableFontFace:
+    // false); combined with disableFontFace: true it made pdfjs skip
+    // fetching standard font data entirely, silently dropping all
+    // non-embedded-font glyphs (buildFontPaths never ran since font.data
+    // stayed null) — every standard-font page rendered with no visible text.
+    useSystemFonts: false,
     disableFontFace: true,
-    CanvasFactory: NodeCanvasFactory,
     useWorkerFetch: false,
     isEvalSupported: false,
     disableRange: true,
     disableStream: true,
+    standardFontDataUrl,
   } as any).promise;
 
   const pages: RenderedPage[] = [];
@@ -106,20 +74,15 @@ export async function renderPdfToImages(
 
     const width = Math.ceil(finalViewport.width);
     const height = Math.ceil(finalViewport.height);
-    const canvasAndContext = canvasFactory.create(width, height);
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
 
     await page.render({
-      canvasContext: canvasAndContext.context,
+      canvasContext: context,
       viewport: finalViewport,
     } as any).promise;
 
-    const pngBuffer = await sharp(Buffer.from(canvasAndContext.canvas._data.buffer), {
-      raw: { width, height, channels: 4 },
-    })
-      .png({ compressionLevel: 9 })
-      .toBuffer();
-
-    canvasFactory.destroy(canvasAndContext);
+    const pngBuffer = canvas.toBuffer('image/png');
     pages.push({ pageNumber, pngBuffer, width, height });
   }
 
