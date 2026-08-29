@@ -85,12 +85,14 @@ export async function computeAnswerBoxesFromTextLayer(
     return found === -1 ? null : found;
   });
 
-  return blocks.map((_, i) => {
+  // First pass: tight (unpadded) box per block, so padding in the second
+  // pass can be clamped against real neighboring content instead of a fixed
+  // amount that can exceed a tightly-spaced document's actual gap between
+  // blocks (that's what let padding push two adjacent boxes into overlap).
+  const tightBoxes = blocks.map((_, i) => {
     const start = startIndices[i] ?? null;
     if (start === null) return null;
 
-    // The block's own text runs span from its label to just before the next
-    // located block's label (on the same page), or to the end of that page.
     const startRun = ordered[start]!;
     let end = ordered.length;
     for (let j = 0; j < startIndices.length; j++) {
@@ -99,27 +101,51 @@ export async function computeAnswerBoxesFromTextLayer(
       if (ordered[otherStart]!.page !== startRun.page) continue;
       end = Math.min(end, otherStart);
     }
-    // Cap at the end of the starting run's page.
     while (end > start + 1 && ordered[end - 1]!.page !== startRun.page) end--;
 
     const runsInBlock = ordered.slice(start, end).filter((r) => r.page === startRun.page);
     if (runsInBlock.length === 0) return null;
 
-    const minX = Math.min(...runsInBlock.map((r) => r.x));
-    const minY = Math.min(...runsInBlock.map((r) => r.yTop));
-    const maxX = Math.max(...runsInBlock.map((r) => r.x + r.width));
-    const maxY = Math.max(...runsInBlock.map((r) => r.yBottom));
-
-    // A little breathing room so the border doesn't sit flush against the
-    // glyphs it's highlighting.
-    const padX = 0.01;
-    const padY = 0.006;
-    return [{
+    return {
       page: startRun.page,
-      x: Math.max(0, minX - padX),
-      y: Math.max(0, minY - padY),
-      width: Math.min(1, maxX + padX) - Math.max(0, minX - padX),
-      height: Math.min(1, maxY + padY) - Math.max(0, minY - padY),
+      minX: Math.min(...runsInBlock.map((r) => r.x)),
+      minY: Math.min(...runsInBlock.map((r) => r.yTop)),
+      maxX: Math.max(...runsInBlock.map((r) => r.x + r.width)),
+      maxY: Math.max(...runsInBlock.map((r) => r.yBottom)),
+    };
+  });
+
+  const padX = 0.01;
+  const desiredPadY = 0.006;
+
+  return tightBoxes.map((box, i) => {
+    if (!box) return null;
+
+    // Find the closest other block's tight box on the same page, above and
+    // below this one, to cap padding so it can never bite into a neighbor's
+    // own text -- some source documents space answers only a few points
+    // apart, well under twice the desired padding.
+    let gapAbove = Infinity;
+    let gapBelow = Infinity;
+    for (const other of tightBoxes) {
+      if (!other || other.page !== box.page) continue;
+      if (other.maxY <= box.minY) gapAbove = Math.min(gapAbove, box.minY - other.maxY);
+      if (other.minY >= box.maxY) gapBelow = Math.min(gapBelow, other.minY - box.maxY);
+    }
+    const padTop = Math.min(desiredPadY, gapAbove / 2);
+    const padBottom = Math.min(desiredPadY, gapBelow / 2);
+
+    const x = Math.max(0, box.minX - padX);
+    const y = Math.max(0, box.minY - padTop);
+    const right = Math.min(1, box.maxX + padX);
+    const bottom = Math.min(1, box.maxY + padBottom);
+
+    return [{
+      page: box.page,
+      x,
+      y,
+      width: right - x,
+      height: bottom - y,
     }];
   });
 }

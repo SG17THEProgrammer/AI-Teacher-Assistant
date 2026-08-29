@@ -39,10 +39,17 @@ export function ResultsScreen({ session, onBack }: { session: SessionData; onBac
     />
   );
 
+  // The uploaded file's own page count is the primary source, but never
+  // trust it below the highest page any extracted answer actually landed
+  // on -- otherwise a page 2 answer can be reachable (via clicking its
+  // question) while the toolbar still declares only 1 page until then.
+  const highestAnswerPage = session.answers.reduce((max, a) => Math.max(max, a.pageNumber), 1);
+  const pageCount = Math.max(session.answerSheet?.pageCount ?? 1, highestAnswerPage);
+
   const viewerEl = (
     <AnswerSheetViewer
       sessionId={session.sessionId}
-      pageCount={session.answerSheet?.pageCount ?? 1}
+      pageCount={pageCount}
       answers={session.answers}
       mapping={session.mapping}
       questions={session.questions}
