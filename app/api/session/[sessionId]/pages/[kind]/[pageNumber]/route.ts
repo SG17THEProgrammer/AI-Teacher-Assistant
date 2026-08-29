@@ -19,12 +19,10 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid page number.' }, { status: 400 });
   }
 
-  // Try rendered PNG first (works for image uploads)
+  // Try rendered PNG first (works for both PDF and image uploads)
   try {
     const buffer = await readPageImage(sessionId, kind, pageNum);
-    // Reject blank images (all-zero or near-zero data = blank canvas stub output)
-    const isBlank = buffer.every((b) => b === 0 || b === 137 || b === 80); // PNG header check
-    if (buffer.length > 5000 && !isBlank) {
+    if (buffer.length > 0) {
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': 'image/png',
