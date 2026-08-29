@@ -169,11 +169,13 @@ function PageRenderer({
   zoom: number;
 }) {
   const src = `/api/session/${sessionId}/pages/${kind}/${page}`;
-  // Use object tag — browser renders PDF natively and images both work
+  // Omit `type` so the browser renders based on the actual response
+  // Content-Type (image/png for rasterized pages, application/pdf for the
+  // raw-file fallback) — a hardcoded type mismatches the PNG case and the
+  // <object> silently renders blank instead of falling back to <img>.
   return (
     <object
       data={src}
-      type="application/pdf"
       className="block w-full rounded-lg"
       style={{ height: `${zoom * 9}px`, minHeight: '800px' }}
     >
