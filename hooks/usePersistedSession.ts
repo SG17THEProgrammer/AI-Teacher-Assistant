@@ -12,6 +12,9 @@ const MAX_HISTORY = 20;
 export interface HistoryEntry {
   sessionId: string;
   snapshot: SessionData;
+  /** When this exam was originally graded -- set once, never overwritten. */
+  createdAt: number;
+  /** Most recent time this entry was saved/reopened; used for sorting. */
   savedAt: number;
   questionPaperName: string;
   answerSheetName: string;
@@ -38,9 +41,17 @@ export async function saveSessionToHistory(sessionId: string, data: SessionData)
       : '—';
     const percent = summary?.percentage ?? 0;
 
+    const db = await getDb();
+    // Reopening a past exam re-runs the same "save" effect that originally
+    // created it (session.stage is still 'done'), which used to overwrite
+    // the creation timestamp with "now" every time. Preserve the original
+    // createdAt if this sessionId already has an entry.
+    const existing = await db.get(STORE_NAME, sessionId) as HistoryEntry | undefined;
+
     const entry: HistoryEntry = {
       sessionId,
       snapshot: data,
+      createdAt: existing?.createdAt ?? Date.now(),
       savedAt: Date.now(),
       questionPaperName: data.questionPaper?.originalName ?? 'Question Paper',
       answerSheetName: data.answerSheet?.originalName ?? 'Answer Sheet',
@@ -48,7 +59,6 @@ export async function saveSessionToHistory(sessionId: string, data: SessionData)
       percent,
     };
 
-    const db = await getDb();
     await db.put(STORE_NAME, entry);
     await trimHistory(db);
   } catch {

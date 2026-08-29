@@ -6,6 +6,16 @@ import type { HistoryEntry } from '@/hooks/usePersistedSession';
 import { removeFromHistory } from '@/hooks/usePersistedSession';
 import { useState } from 'react';
 
+function formatEntryDate(ms: number): string {
+  return new Date(ms).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function ExamsScreen({
   history,
   onOpen,
@@ -97,13 +107,11 @@ export function ExamsScreen({
                     Answer: {entry.answerSheetName}
                   </p>
                   <p className="mt-1 text-xs text-ink-300">
-                    {new Date(entry.savedAt).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {/* Entries saved before createdAt existed fall back to savedAt. */}
+                    Created {formatEntryDate(entry.createdAt ?? entry.savedAt)}
+                    {entry.createdAt != null && entry.savedAt - entry.createdAt > 60_000 && (
+                      <> · Last opened {formatEntryDate(entry.savedAt)}</>
+                    )}
                   </p>
                 </div>
 
