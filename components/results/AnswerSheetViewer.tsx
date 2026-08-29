@@ -135,13 +135,12 @@ export function AnswerSheetViewer({
       <div ref={scrollRef} className="flex-1 overflow-auto scrollbar-thin p-6">
         <div
           className="relative mx-auto rounded-lg bg-white shadow-panel overflow-hidden"
-          style={{ width: `${zoom * 6.4}px`, maxWidth: '100%', minHeight: '800px' }}
+          style={{ width: `${zoom * 6.4}px`, maxWidth: '100%' }}
         >
           <PageRenderer
             sessionId={sessionId}
             kind="answerSheet"
             page={page}
-            zoom={zoom}
           />
           {currentPageBoxes.map((box, i) => (
             <HighlightOverlay
@@ -161,27 +160,40 @@ function PageRenderer({
   sessionId,
   kind,
   page,
-  zoom,
 }: {
   sessionId: string;
   kind: string;
   page: number;
-  zoom: number;
 }) {
+  const [failed, setFailed] = useState(false);
   const src = `/api/session/${sessionId}/pages/${kind}/${page}`;
-  // Omit `type` so the browser renders based on the actual response
-  // Content-Type (image/png for rasterized pages, application/pdf for the
-  // raw-file fallback) — a hardcoded type mismatches the PNG case and the
-  // <object> silently renders blank instead of falling back to <img>.
+
+  // A plain <img> lets the browser size this by its own natural width/height
+  // (via w-full h-auto below), so the wrapper always ends up exactly the
+  // size of the real rendered page -- which is what keeps the percentage-
+  // based highlight overlay aligned with the actual text. The previous
+  // <object> with a hardcoded pixel height forced a mismatched aspect
+  // ratio onto every page, stretching/cropping the image and throwing off
+  // every highlight box's position along with it.
+  if (failed) {
+    return (
+      <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-ink-50 p-6 text-center text-sm text-ink-400">
+        Preview unavailable for this page.{' '}
+        <a href={src} target="_blank" rel="noreferrer" className="ml-1 underline">
+          Open original
+        </a>
+      </div>
+    );
+  }
+
   return (
-    <object
-      data={src}
-      className="block w-full rounded-lg"
-      style={{ height: `${zoom * 9}px`, minHeight: '800px' }}
-    >
-      {/* Fallback for image uploads */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={`Answer sheet page ${page}`} className="block w-full rounded-lg" draggable={false} />
-    </object>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={`Answer sheet page ${page}`}
+      className="block h-auto w-full rounded-lg"
+      draggable={false}
+      onError={() => setFailed(true)}
+    />
   );
 }

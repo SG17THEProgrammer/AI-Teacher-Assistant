@@ -46,13 +46,16 @@ class NodeCanvasFactory {
   }
 }
 
-export async function renderPdfToImages(
-  pdfBuffer: Buffer,
-  opts: { targetDpi?: number; maxDimensionPx?: number } = {}
-): Promise<RenderedPage[]> {
-  const targetDpi = opts.targetDpi ?? 200;
-  const maxDimensionPx = opts.maxDimensionPx ?? 2200;
-
+/**
+ * Opens a PDF with the exact option set that reliably parses real-world
+ * files under pdfjs's legacy Node build. Fewer/default options here is not
+ * equivalent -- some validly-structured PDFs (confirmed against this repo's
+ * own reportlab-generated test fixtures) fail with "Invalid PDF structure"
+ * under pdfjs's default xref-recovery path unless disableRange/disableStream
+ * are set, since `getDocument` otherwise assumes a partially-fetched source
+ * rather than a fully in-memory buffer.
+ */
+export async function openPdfDocument(pdfBuffer: Buffer) {
   const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
   // Inject the worker module into globalThis so pdfjs finds WorkerMessageHandler
@@ -62,8 +65,6 @@ export async function renderPdfToImages(
     (globalThis as any).pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs' as any);
   }
 
-  const canvasFactory = new NodeCanvasFactory();
-
   // Non-embedded fonts (e.g. Helvetica) are drawn as vector glyph paths built
   // from pdfjs's bundled standard font metrics — without this pdfjs silently
   // drops every glyph it can't resolve, rendering text-only pages blank.
@@ -72,7 +73,7 @@ export async function renderPdfToImages(
   // with ENOENT since fs treats it as a literal path, not a URL to resolve).
   const standardFontDataUrl = `${path.join(process.cwd(), 'node_modules/pdfjs-dist/standard_fonts')}${path.sep}`;
 
-  const doc = await pdfjsLib.getDocument({
+  return pdfjsLib.getDocument({
     data: new Uint8Array(pdfBuffer),
     // useSystemFonts assumes @font-face/OS font rendering (disableFontFace:
     // false); combined with disableFontFace: true it made pdfjs skip
@@ -88,6 +89,17 @@ export async function renderPdfToImages(
     disableStream: true,
     standardFontDataUrl,
   } as any).promise;
+}
+
+export async function renderPdfToImages(
+  pdfBuffer: Buffer,
+  opts: { targetDpi?: number; maxDimensionPx?: number } = {}
+): Promise<RenderedPage[]> {
+  const targetDpi = opts.targetDpi ?? 200;
+  const maxDimensionPx = opts.maxDimensionPx ?? 2200;
+
+  const canvasFactory = new NodeCanvasFactory();
+  const doc = await openPdfDocument(pdfBuffer);
 
   const pages: RenderedPage[] = [];
   const scale = targetDpi / 72;

@@ -1,11 +1,13 @@
 import { nanoid } from 'nanoid';
 import { enhanceForOcr, type RenderedPage } from '@/lib/pdf/pdfToImages';
 import { renderUploadToPages } from '@/lib/pdf/renderUpload';
+import { computeAnswerBoxesFromTextLayer } from '@/lib/pdf/textLayerBoxes';
 import { callGeminiVisionJSON, isGeminiConfigured } from '@/lib/gemini/client';
 import { ANSWER_EXTRACTION_SYSTEM, buildAnswerExtractionPrompt } from '@/lib/gemini/prompts';
 import { ocrPageFallback } from '@/lib/ocr/tesseractFallback';
 import { normalizeQuestionNumber } from '@/lib/mapping/numberNormalizer';
 import type { ExtractedAnswerBlock, AnswerSheetExtractionResult } from '@/types/answer';
+import type { BoundingBox } from '@/types/question';
 
 interface GeminiAnswerPageResponse {
   answers: {
@@ -54,15 +56,35 @@ export async function extractAnswersFromPages(
         });
         warnings.push(...(response.warnings ?? []));
         if (response.answers.length === 0) warnings.push('No answer content detected in the answer sheet.');
-        const answers = response.answers.map((a) => {
+
+        // The vision model's own boundingBox is a spatial *guess* and is
+        // frequently off (confirmed: boxes landing on the header or a
+        // neighboring block instead of the block's own text). For a typed
+        // PDF we can instead locate each block's label in the PDF's real
+        // text geometry and derive an exact box deterministically -- no
+        // guessing involved. Falls back to the model's own box per-block
+        // when its label can't be located verbatim (e.g. no label written).
+        let textLayerBoxes: (BoundingBox[] | null)[] | null = null;
+        try {
+          textLayerBoxes = await computeAnswerBoxesFromTextLayer(
+            rawBuffer,
+            response.answers.map((a, i) => ({ detectedNumberRawText: a.detectedNumberRawText, sequenceIndex: i }))
+          );
+        } catch {
+          // No usable text layer (e.g. scanned/rasterized PDF) -- keep model boxes.
+        }
+
+        const answers = response.answers.map((a, i) => {
           const normalized = normalizeQuestionNumber(a.detectedQuestionNumber);
+          const derivedBoxes = textLayerBoxes?.[i] ?? null;
+          const boundingBoxes = derivedBoxes ?? (a.boundingBox ? [{ page: 1, ...a.boundingBox }] : []);
           return {
             answerId: nanoid(10),
             detectedQuestionNumber: normalized?.canonical ?? null,
             detectedNumberRawText: a.detectedNumberRawText,
             answerText: a.answerText,
-            pageNumber: 1,
-            boundingBoxes: a.boundingBox ? [{ page: 1, ...a.boundingBox }] : [],
+            pageNumber: boundingBoxes[0]?.page ?? 1,
+            boundingBoxes,
             sequenceIndex: globalSequence++,
             containsDiagram: a.containsDiagram,
             containsTable: a.containsTable,
