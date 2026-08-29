@@ -7,7 +7,7 @@ import { QuestionList } from './QuestionList';
 import { AnswerSheetViewer } from './AnswerSheetViewer';
 import type { SessionData } from '@/types/session';
 
-export function ResultsScreen({ session }: { session: SessionData }) {
+export function ResultsScreen({ session, onBack }: { session: SessionData; onBack?: () => void }) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
     session.questions[0]?.id ?? null
   );

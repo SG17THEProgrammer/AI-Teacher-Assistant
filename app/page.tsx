@@ -1,40 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { UploadScreen } from '@/components/upload/UploadScreen';
 import { ExtractingScreen } from '@/components/processing/ExtractingScreen';
 import { ResultsScreen } from '@/components/results/ResultsScreen';
+import { ExamsScreen } from '@/components/exams/ExamsScreen';
 import { useUploadFiles } from '@/hooks/useUpload';
 import { useProcessingStream } from '@/hooks/useProcessingStream';
 import { useSessionData } from '@/hooks/useSessionData';
 import {
-  usePersistedSession,
-  saveSessionToStorage,
-  clearSessionFromStorage,
+  saveSessionToHistory,
+  useHistory,
+  type HistoryEntry,
 } from '@/hooks/usePersistedSession';
 import type { DropzoneFile } from '@/components/upload/UploadDropzone';
 import type { SessionData } from '@/types/session';
 
-type Phase = 'upload' | 'processing' | 'results';
+type Phase = 'upload' | 'processing' | 'results' | 'exams';
 
 export default function Home() {
-  const [phase, setPhase] = useState<Phase>('upload');
+  const [phase, setPhase] = useState<Phase>('exams');
   const [sessionId, setSessionId] = useState<string | null>(null);
-  // When restored from localStorage we show results immediately without refetch
-  const [restoredSession, setRestoredSession] = useState<SessionData | null>(null);
+  const [activeSession, setActiveSession] = useState<SessionData | null>(null);
+  const [historyVersion, setHistoryVersion] = useState(0); // bump to force re-read
 
-  const persisted = usePersistedSession();
+  const history = useHistory(historyVersion);
 
-  // Restore previous session on first load
+  // Auto-open last session if available on first load
+  const didInit = useRef(false);
   useEffect(() => {
-    if (persisted && phase === 'upload') {
-      setRestoredSession(persisted.snapshot);
-      setSessionId(persisted.sessionId);
-      setPhase('results');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persisted]);
+    if (didInit.current) return;
+    didInit.current = true;
+    // Just show exams list — user can pick which one to open
+  }, []);
 
   const { upload, isSubmitting, error: uploadError } = useUploadFiles();
   const { state: processingState, start: startProcessing } = useProcessingStream();
@@ -42,20 +41,20 @@ export default function Home() {
     data: fetchedSession,
     refetch,
     isFetching,
-  } = useSessionData(sessionId, phase === 'results' && !restoredSession);
+  } = useSessionData(sessionId, phase === 'results' && !activeSession);
 
-  const session = restoredSession ?? fetchedSession;
+  const session = activeSession ?? fetchedSession;
 
-  // Persist results to localStorage whenever we get them
+  // Save to history whenever a session completes
   useEffect(() => {
     if (session && sessionId && phase === 'results' && session.stage === 'done') {
-      saveSessionToStorage(sessionId, session);
+      saveSessionToHistory(sessionId, session);
+      setHistoryVersion((v) => v + 1);
     }
   }, [session, sessionId, phase]);
 
   const handleStartMapping = async (questionPaper: DropzoneFile, answerSheet: DropzoneFile) => {
-    clearSessionFromStorage();
-    setRestoredSession(null);
+    setActiveSession(null);
     const newSessionId = await upload(questionPaper, answerSheet);
     if (!newSessionId) return;
     setSessionId(newSessionId);
@@ -66,13 +65,37 @@ export default function Home() {
     });
   };
 
+  const handleOpenHistoryEntry = (entry: HistoryEntry) => {
+    setActiveSession(entry.snapshot);
+    setSessionId(entry.sessionId);
+    setPhase('results');
+  };
+
   const handleGoBack = () => {
+    setActiveSession(null);
+    setPhase('exams');
+  };
+
+  const handleNewExam = () => {
+    setActiveSession(null);
     setPhase('upload');
-    setRestoredSession(null);
   };
 
   return (
-    <AppShell sidebarCollapsedByDefault={phase === 'processing'}>
+    <AppShell
+      sidebarCollapsedByDefault={phase === 'processing'}
+      onBack={phase !== 'exams' ? handleGoBack : undefined}
+      onExamsClick={() => setPhase('exams')}
+    >
+      {phase === 'exams' && (
+        <ExamsScreen
+          history={history}
+          onOpen={handleOpenHistoryEntry}
+          onNewExam={handleNewExam}
+          onHistoryChange={() => setHistoryVersion((v) => v + 1)}
+        />
+      )}
+
       {phase === 'upload' && (
         <UploadScreen
           onStartMapping={handleStartMapping}
@@ -97,17 +120,17 @@ export default function Home() {
             </div>
           )}
           {session && !processingState.error && (
-            <ResultsScreen session={session} />
+            <ResultsScreen session={session} onBack={handleGoBack} />
           )}
           {processingState.error && (
             <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-              <p className="text-lg font-bold text-danger-DEFAULT">Processing failed</p>
+              <p className="text-lg font-bold text-red-600">Processing failed</p>
               <p className="max-w-md text-sm text-ink-500">{processingState.error}</p>
               <button
                 onClick={handleGoBack}
                 className="mt-2 rounded-pill bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
               >
-                Start over
+                Go back
               </button>
             </div>
           )}

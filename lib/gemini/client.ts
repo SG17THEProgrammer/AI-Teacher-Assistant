@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, type Part } from '@google/generative-ai';
 import { repairJson } from './jsonRepair';
 
-const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-3.7-flash';
+const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 // Simple rate limiter — free tier allows ~15 RPM on flash models.
 // We space calls at least 4 seconds apart to stay safe.
