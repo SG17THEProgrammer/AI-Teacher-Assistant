@@ -4,6 +4,7 @@ import { readStoredFile, savePageImages } from '@/lib/store/fileStorage';
 import { renderUploadToPages } from '@/lib/pdf/renderUpload';
 import { extractQuestionsFromPages } from '@/lib/ocr/questionPipeline';
 import { extractAnswersFromPages } from '@/lib/ocr/answerPipeline';
+import { insertAnswerGaps } from '@/lib/pdf/insertAnswerGaps';
 import { runMappingEngine } from '@/lib/mapping/mappingEngine';
 import { runGradingEngine } from '@/lib/grading/gradingEngine';
 import type { ProcessingProgressEvent } from '@/types/session';
@@ -60,7 +61,6 @@ export async function POST(req: NextRequest): Promise<Response> {
           renderUploadToPages(qpBuffer, session.questionPaper!.mimeType),
           renderUploadToPages(asBuffer, session.answerSheet!.mimeType),
         ]);
-        await savePageImages(sessionId, 'answerSheet', answerPages);
 
         // Question and answer extraction run concurrently -- they are
         // independent until the mapping stage, so there is no reason to
@@ -92,6 +92,15 @@ export async function POST(req: NextRequest): Promise<Response> {
             );
           })(),
         ]);
+
+        // Now that every answer's final bounding box is known, redraw any
+        // page whose blocks are packed tighter than a readable gap -- this
+        // physically inserts blank rows into the page image itself (the
+        // only way to add spacing on what is ultimately a flat raster),
+        // remapping boxes in place to match. Saved after extraction so OCR
+        // still ran against the original, untouched pixels.
+        const spacedAnswerPages = await insertAnswerGaps(answerPages, answerResult.answers);
+        await savePageImages(sessionId, 'answerSheet', spacedAnswerPages);
 
         sessionStore.update(sessionId, {
           questions: questionResult.questions,
