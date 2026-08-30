@@ -173,7 +173,7 @@ export async function readStoredFile(fileUrl: string): Promise<Buffer> {
 
 export async function deleteSessionFiles(sessionId: string): Promise<void> {
   // Vercel Blob is a flat system, so we delete by prefix (folder name)
-  let cursor;
+  let cursor: string | undefined; // <-- We added the explicit type here
   do {
     const { blobs, cursor: nextCursor } = await list({
       prefix: `${sessionId}/`,
@@ -210,7 +210,9 @@ export async function getPageImageUrl(
 ): Promise<string | null> {
   const blobPath = `${sessionId}/pages/${kind}/${pageNumber}.png`;
   const { blobs } = await list({ prefix: blobPath, limit: 1 });
-  return blobs.length > 0 ? blobs[0].url : null;
+  
+  // Use optional chaining (?.) and null coalescing (??) to satisfy TypeScript
+  return blobs[0]?.url ?? null;
 }
 
 export async function readPageImage(

@@ -1,8 +1,10 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
 import { validateAndStoreUpload, UploadValidationError } from '@/lib/store/fileStorage';
 import { sessionStore } from '@/lib/store/sessionStore';
 
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 // NOTE: this route is kept for early per-file feedback while the teacher is
