@@ -79,7 +79,11 @@ export async function extractAnswersFromPages(
         try {
           textLayerBoxes = await computeAnswerBoxesFromTextLayer(
             rawBuffer,
-            response.answers.map((a, i) => ({ detectedNumberRawText: a.detectedNumberRawText, sequenceIndex: i }))
+            response.answers.map((a, i) => ({
+              detectedNumberRawText: a.detectedNumberRawText,
+              sequenceIndex: i,
+              geminiBox: a.boundingBox ? { page: a.pageNumber ?? 1, ...a.boundingBox } : null,
+            }))
           );
         } catch {
           // No usable text layer (e.g. scanned/rasterized PDF) -- keep model boxes.

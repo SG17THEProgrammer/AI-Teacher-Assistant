@@ -67,7 +67,12 @@ async function extractTextRuns(pdfBuffer: Buffer): Promise<PositionedRun[]> {
  */
 export async function computeAnswerBoxesFromTextLayer(
   pdfBuffer: Buffer,
-  blocks: { detectedNumberRawText: string | null; sequenceIndex: number }[]
+  blocks: {
+    detectedNumberRawText: string | null;
+    sequenceIndex: number;
+    /** The vision model's own rough box, used only as a safety ceiling (see below). */
+    geminiBox?: { page: number; x: number; y: number; width: number; height: number } | null;
+  }[]
 ): Promise<(BoundingBox[] | null)[]> {
   const runs = await extractTextRuns(pdfBuffer);
   if (runs.length === 0) return blocks.map(() => null);
@@ -115,10 +120,34 @@ export async function computeAnswerBoxesFromTextLayer(
     };
   });
 
+  // A block whose label text isn't found verbatim as a single text run (e.g.
+  // a diagram with no OCR-able label, or a label split across PDF text runs)
+  // gets no start index above, so the "end" search for every EARLIER block
+  // skips right past it -- letting that earlier block's box balloon down
+  // and swallow the un-anchored block's content (confirmed: a diagram
+  // belonging to a later-numbered answer, physically sitting right after an
+  // unrelated answer, was getting absorbed into that answer's highlight).
+  // Clamp every box's bottom edge to the vision model's own rough top-edge
+  // for the very next sequential block on the same page, regardless of
+  // whether that next block's label was located in the text layer -- it's
+  // only ever used to cap an over-wide box, never to grow one.
+  const clampedBoxes = tightBoxes.map((box, i) => {
+    if (!box) return null;
+    for (let j = i + 1; j < blocks.length; j++) {
+      const nextGemini = blocks[j].geminiBox;
+      if (!nextGemini || nextGemini.page !== box.page) continue;
+      if (nextGemini.y > box.minY) {
+        return { ...box, maxY: Math.min(box.maxY, nextGemini.y) };
+      }
+      break;
+    }
+    return box;
+  });
+
   // Returned tight (unpadded) -- outward breathing-room padding is applied
   // once, uniformly across every box regardless of source, by
   // padAnswerBoundingBoxes() in lib/pdf/boxPadding.ts.
-  return tightBoxes.map((box) => {
+  return clampedBoxes.map((box) => {
     if (!box) return null;
     return [{
       page: box.page,
