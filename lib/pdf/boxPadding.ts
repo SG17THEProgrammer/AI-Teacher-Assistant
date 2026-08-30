@@ -4,6 +4,40 @@ const PAD_X = 0.01;
 const DESIRED_PAD_Y = 0.012;
 
 /**
+ * Clips any box that vertically overlaps a *different* answer's box on the
+ * same page, regardless of which source produced either box (deterministic
+ * text-layer, or a vision model's raw guess) -- a per-source fix (only
+ * clamping inside the text-layer computation) still leaves overlap whenever
+ * the OVERLAPPING box itself came from the raw vision guess instead. This
+ * runs first, before padding, so padding's own neighbor-gap clamp measures
+ * real (already de-overlapped) gaps.
+ */
+export function clampOverlappingBoxes(answers: ExtractedAnswerBlock[]): void {
+  type Entry = { box: ExtractedAnswerBlock['boundingBoxes'][number]; answerId: string };
+  const byPage = new Map<number, Entry[]>();
+  for (const answer of answers) {
+    for (const box of answer.boundingBoxes) {
+      const list = byPage.get(box.page) ?? [];
+      list.push({ box, answerId: answer.answerId });
+      byPage.set(box.page, list);
+    }
+  }
+
+  for (const entries of byPage.values()) {
+    entries.sort((a, b) => a.box.y - b.box.y);
+    for (let i = 0; i < entries.length - 1; i++) {
+      const current = entries[i]!;
+      const next = entries[i + 1]!;
+      if (current.answerId === next.answerId) continue; // same block, multiple boxes -- not an overlap
+      const currentBottom = current.box.y + current.box.height;
+      if (currentBottom > next.box.y && next.box.y > current.box.y) {
+        current.box.height = next.box.y - current.box.y;
+      }
+    }
+  }
+}
+
+/**
  * Adds outward breathing room to every answer's bounding box(es), clamped
  * per-page so adjacent boxes never overlap even when the source (a vision
  * model's raw guess, or the deterministic text-layer boxes) placed them

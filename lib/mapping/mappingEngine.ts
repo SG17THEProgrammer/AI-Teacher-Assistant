@@ -189,12 +189,21 @@ function groupAnswersByCanonicalNumber(
   return groups;
 }
 
+const DUPLICATE_TEXT_SIMILARITY = 0.6;
+
 /**
- * Within a same-numbered group, decides which blocks are genuinely the
- * same multi-page answer (contiguous in writing order, nothing else
- * interleaved) versus a duplicate re-attempt written elsewhere on the
- * sheet. Multi-page continuations are merged; duplicates are separated out
- * for the caller to record as orphan "duplicate-of-mapped" answers.
+ * Within a same-numbered group, decides which blocks are genuinely all part
+ * of the same answer (e.g. a diagram appended far below the main text, or a
+ * continuation on a later page) versus a duplicate re-attempt (the student
+ * crossed out and rewrote the same content elsewhere). This used to be
+ * guessed from how far apart the blocks were written (a small sequence
+ * gap = continuation, a large one = duplicate) -- but a supplementary
+ * diagram is routinely written well after the other answers, so that
+ * heuristic dropped it as a "duplicate" and it never got merged/highlighted.
+ * Content similarity is the real signal: near-identical text is a rewrite;
+ * anything else is additional content for the same answer, however far away
+ * it was written, and must be merged so every scattered piece highlights
+ * together.
  */
 function resolveGroup(
   group: ExtractedAnswerBlock[],
@@ -204,25 +213,38 @@ function resolveGroup(
     return { primary: group[0], additional: [], duplicates: [] };
   }
 
-  // A run is "contiguous" if consecutive sequence indices differ by more
-  // than 1 only because of blocks belonging to *this same group* (i.e. no
-  // other question's answer was written in between) -- approximated here by
-  // checking there's no large sequence gap, which in practice corresponds
-  // to "the student kept writing across a page turn" rather than "wrote
-  // something else, then came back much later and re-answered".
-  const gaps = group.slice(1).map((a, i) => a.sequenceIndex - group[i].sequenceIndex);
-  const looksContiguous = gaps.every((g) => g <= 3);
+  const maxSimilarity = Math.max(
+    0,
+    ...group.flatMap((a, i) => group.slice(i + 1).map((b) => textOverlapRatio(a.answerText, b.answerText)))
+  );
 
-  if (looksContiguous) {
+  if (maxSimilarity < DUPLICATE_TEXT_SIMILARITY) {
     const [primary, ...additional] = group;
     return { primary, additional, duplicates: [] };
   }
 
-  // Not contiguous -> treat as duplicate re-attempts. Prefer the longer,
-  // non-crossed-out, higher-confidence attempt as primary.
+  // Genuine duplicate re-attempts -- prefer the longer, non-crossed-out,
+  // higher-confidence attempt as primary.
   const ranked = [...group].sort((a, b) => rankDuplicate(b, question) - rankDuplicate(a, question));
   const [primary, ...rest] = ranked;
   return { primary, additional: [], duplicates: rest };
+}
+
+function textOverlapRatio(a: string, b: string): number {
+  const tokenize = (s: string) =>
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+    );
+  const wordsA = tokenize(a);
+  const wordsB = tokenize(b);
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) if (wordsB.has(w)) overlap++;
+  return overlap / Math.min(wordsA.size, wordsB.size);
 }
 
 function rankDuplicate(answer: ExtractedAnswerBlock, _question: ExtractedQuestion): number {
