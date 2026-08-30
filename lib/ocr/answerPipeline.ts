@@ -10,6 +10,7 @@ import {
   buildAnswerExtractionDocumentPrompt,
 } from '@/lib/gemini/prompts';
 import { ocrPageFallback } from '@/lib/ocr/tesseractFallback';
+import { splitEmbeddedAnswerLabels } from '@/lib/ocr/splitEmbeddedLabels';
 import { normalizeQuestionNumber } from '@/lib/mapping/numberNormalizer';
 import type { ExtractedAnswerBlock, AnswerSheetExtractionResult } from '@/types/answer';
 import type { BoundingBox } from '@/types/question';
@@ -68,6 +69,15 @@ export async function extractAnswersFromPages(
         warnings.push(...(response.warnings ?? []));
         if (response.answers.length === 0) warnings.push('No answer content detected in the answer sheet.');
 
+        // Gemini's own segmentation can still bundle a *different* answer's
+        // content into a block when its label appears mid-block rather than
+        // at the very start (e.g. "Ans 5. <text> Diagram for Answer 2:
+        // <drawing>" read back as one "5" block) -- no amount of box
+        // clamping or merging downstream can recover from that since there
+        // is only ever one block. Re-split those cases deterministically
+        // from the transcribed text before any box computation happens.
+        const splitAnswers = splitEmbeddedAnswerLabels(response.answers);
+
         // The vision model's own boundingBox is a spatial *guess* and is
         // frequently off (confirmed: boxes landing on the header or a
         // neighboring block instead of the block's own text). For a typed
@@ -79,7 +89,7 @@ export async function extractAnswersFromPages(
         try {
           textLayerBoxes = await computeAnswerBoxesFromTextLayer(
             rawBuffer,
-            response.answers.map((a, i) => ({
+            splitAnswers.map((a, i) => ({
               detectedNumberRawText: a.detectedNumberRawText,
               sequenceIndex: i,
               geminiBox: a.boundingBox ? { page: a.pageNumber ?? 1, ...a.boundingBox } : null,
@@ -89,7 +99,7 @@ export async function extractAnswersFromPages(
           // No usable text layer (e.g. scanned/rasterized PDF) -- keep model boxes.
         }
 
-        const answers = response.answers.map((a, i) => {
+        const answers = splitAnswers.map((a, i) => {
           const normalized = normalizeQuestionNumber(a.detectedQuestionNumber);
           const derivedBoxes = textLayerBoxes?.[i] ?? null;
           const modelPage = a.pageNumber ?? 1;
@@ -138,7 +148,7 @@ export async function extractAnswersFromPages(
             );
           }
 
-          perPageResults[idx] = response.answers.map((a) => {
+          perPageResults[idx] = splitEmbeddedAnswerLabels(response.answers).map((a) => {
             const normalized = normalizeQuestionNumber(a.detectedQuestionNumber);
             return {
               answerId: nanoid(10),
