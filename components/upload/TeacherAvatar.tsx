@@ -4,7 +4,7 @@ export function TeacherAvatar() {
       <span className="absolute inset-0 rounded-full bg-brand-100 animate-pulse-ring" />
       <span className="absolute inset-[10px] rounded-full bg-brand-200/70" />
       <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full border-4 border-white bg-canvas-200 shadow-floating">
-        <svg viewBox="0 0 64 64" className="h-10 w-10 text-ink-500" fill="none">
+        {/* <svg viewBox="0 0 64 64" className="h-10 w-10 text-ink-500" fill="none">
           <circle cx="32" cy="22" r="12" fill="currentColor" opacity="0.85" />
           <path
             d="M10 58c0-13 9.8-22 22-22s22 9 22 22"
@@ -12,7 +12,8 @@ export function TeacherAvatar() {
             opacity="0.85"
           />
           <rect x="24" y="30" width="16" height="12" rx="3" fill="white" opacity="0.9" />
-        </svg>
+        </svg> */}
+        <img src="/woman-teacher.svg" alt="teacher" className="h-14"/>
       </div>
       {[
         { top: '-2px', right: '10px' },

@@ -82,7 +82,7 @@ export function Sidebar({
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink-900">
             <span className="text-base font-black text-white">V</span>
           </div>
-          <span className="text-lg font-extrabold text-ink-900">VedaAI</span>
+          <span className="text-xl font-extrabold text-ink-900">VedaAI</span>
         </div>
         <button
           onClick={onToggle}
@@ -118,9 +118,9 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto flex items-center gap-3 rounded-2xl bg-canvas-50 p-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas-200 text-lg">
-          🏫
-        </div>
+        {/* <div className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas-200 text-lg"> */}
+          <img src="https://icon2.cleanpng.com/20180814/yrk/47849b8ccfecbc49a1a1e22daa4905f3.webp" alt="school_image" className='h-9 w-8'/>
+        {/* </div> */}
         <div className="leading-tight">
           <p className="text-sm font-bold text-ink-900">Delhi Public School</p>
           <p className="text-xs text-ink-400">Bokaro Steel City</p>
