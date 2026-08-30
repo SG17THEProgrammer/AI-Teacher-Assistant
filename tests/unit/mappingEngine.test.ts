@@ -120,7 +120,7 @@ describe('runMappingEngine', () => {
     const answers = [makeAnswer('a4x', '4(q)', 'Photosynthesis explanation here', 0)];
 
     const result = await runMappingEngine(questions, answers);
-    const mapping = result.mappings[0];
+    const mapping = result.mappings[0]!;
 
     expect(mapping.mappedAnswerId).toBe('a4x');
     expect(mapping.method).toBe('number-fuzzy');

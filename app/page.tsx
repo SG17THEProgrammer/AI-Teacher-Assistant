@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { nanoid } from 'nanoid';
 import { AppShell } from '@/components/layout/AppShell';
 import { UploadScreen } from '@/components/upload/UploadScreen';
 import { ExtractingScreen } from '@/components/processing/ExtractingScreen';
 import { ResultsScreen } from '@/components/results/ResultsScreen';
 import { ExamsScreen } from '@/components/exams/ExamsScreen';
-import { useUploadFiles } from '@/hooks/useUpload';
 import { useProcessingStream } from '@/hooks/useProcessingStream';
 import { useSessionData } from '@/hooks/useSessionData';
 import {
@@ -35,7 +35,6 @@ export default function Home() {
     // Just show exams list — user can pick which one to open
   }, []);
 
-  const { upload, isSubmitting, error: uploadError } = useUploadFiles();
   const { state: processingState, start: startProcessing } = useProcessingStream();
   const {
     data: fetchedSession,
@@ -54,13 +53,17 @@ export default function Home() {
     }
   }, [session, sessionId, phase]);
 
-  const handleStartMapping = async (questionPaper: DropzoneFile, answerSheet: DropzoneFile) => {
+  const handleStartMapping = (questionPaper: DropzoneFile, answerSheet: DropzoneFile) => {
     setActiveSession(null);
-    const newSessionId = await upload(questionPaper, answerSheet);
-    if (!newSessionId) return;
+    // Both files travel with the /api/process request itself (see
+    // useProcessingStream) rather than through a separate /api/upload
+    // round trip -- that two-step flow relied on a prior request's
+    // in-memory session state still being visible to this one, which
+    // serverless gives no guarantee of across separate requests.
+    const newSessionId = nanoid(12);
     setSessionId(newSessionId);
     setPhase('processing');
-    startProcessing(newSessionId, () => {
+    startProcessing(newSessionId, { questionPaper: questionPaper.file, answerSheet: answerSheet.file }, () => {
       setPhase('results');
       refetch();
     });
@@ -100,8 +103,8 @@ export default function Home() {
       {phase === 'upload' && (
         <UploadScreen
           onStartMapping={handleStartMapping}
-          isSubmitting={isSubmitting}
-          errorMessage={uploadError}
+          isSubmitting={false}
+          errorMessage={null}
         />
       )}
 

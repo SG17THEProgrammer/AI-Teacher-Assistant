@@ -190,21 +190,25 @@ function groupAnswersByCanonicalNumber(
   return groups;
 }
 
-const DUPLICATE_TEXT_SIMILARITY = 0.6;
-
 /**
  * Within a same-numbered group, decides which blocks are genuinely all part
- * of the same answer (e.g. a diagram appended far below the main text, or a
- * continuation on a later page) versus a duplicate re-attempt (the student
- * crossed out and rewrote the same content elsewhere). This used to be
- * guessed from how far apart the blocks were written (a small sequence
- * gap = continuation, a large one = duplicate) -- but a supplementary
- * diagram is routinely written well after the other answers, so that
- * heuristic dropped it as a "duplicate" and it never got merged/highlighted.
- * Content similarity is the real signal: near-identical text is a rewrite;
- * anything else is additional content for the same answer, however far away
- * it was written, and must be merged so every scattered piece highlights
- * together.
+ * of the same answer (a page-turn continuation, or a diagram/table appended
+ * far below the main text) versus a duplicate re-attempt (the student
+ * crossed out and rewrote the same content elsewhere).
+ *
+ * A diagram or table is treated as supplementary content unconditionally,
+ * regardless of how far away it was written: a student routinely finishes
+ * writing the text answer first, then goes back and draws the diagram much
+ * later on the sheet, so a large sequence gap there does not imply a
+ * duplicate the way it would for plain re-typed text. (Pure text-similarity
+ * was tried here first and reverted -- it can't reliably tell a paraphrased
+ * duplicate rewrite apart from a low-overlap-but-genuine continuation, since
+ * both can look equally dissimilar in vocabulary.)
+ *
+ * Otherwise, writing-order contiguity is the signal: a small sequence gap
+ * (<=3) means a genuine multi-page continuation; a large gap means other,
+ * differently-numbered content was written in between, so a later
+ * same-numbered attempt is treated as a duplicate.
  */
 function resolveGroup(
   group: ExtractedAnswerBlock[],
@@ -214,38 +218,25 @@ function resolveGroup(
     return { primary: group[0]!, additional: [], duplicates: [] };
   }
 
-  const maxSimilarity = Math.max(
-    0,
-    ...group.flatMap((a, i) => group.slice(i + 1).map((b) => textOverlapRatio(a.answerText, b.answerText)))
-  );
-
-  if (maxSimilarity < DUPLICATE_TEXT_SIMILARITY) {
+  const hasSupplementaryContent = group.some((a) => a.containsDiagram || a.containsTable);
+  if (hasSupplementaryContent) {
     const [primary, ...additional] = group;
     return { primary: primary!, additional, duplicates: [] };
   }
 
-  // Genuine duplicate re-attempts -- prefer the longer, non-crossed-out,
-  // higher-confidence attempt as primary.
+  const gaps = group.slice(1).map((a, i) => a.sequenceIndex - group[i]!.sequenceIndex);
+  const looksContiguous = gaps.every((g) => g <= 3);
+
+  if (looksContiguous) {
+    const [primary, ...additional] = group;
+    return { primary: primary!, additional, duplicates: [] };
+  }
+
+  // Not contiguous -> treat as duplicate re-attempts. Prefer the longer,
+  // non-crossed-out, higher-confidence attempt as primary.
   const ranked = [...group].sort((a, b) => rankDuplicate(b, question) - rankDuplicate(a, question));
   const [primary, ...rest] = ranked;
   return { primary: primary!, additional: [], duplicates: rest };
-}
-
-function textOverlapRatio(a: string, b: string): number {
-  const tokenize = (s: string) =>
-    new Set(
-      s
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter((w) => w.length > 2)
-    );
-  const wordsA = tokenize(a);
-  const wordsB = tokenize(b);
-  if (wordsA.size === 0 || wordsB.size === 0) return 0;
-  let overlap = 0;
-  for (const w of wordsA) if (wordsB.has(w)) overlap++;
-  return overlap / Math.min(wordsA.size, wordsB.size);
 }
 
 function rankDuplicate(answer: ExtractedAnswerBlock, _question: ExtractedQuestion): number {

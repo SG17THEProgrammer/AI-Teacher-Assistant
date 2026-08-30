@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { saveUploadedFile } from '@/lib/store/fileStorage';
+import { validateAndStoreUpload, UploadValidationError } from '@/lib/store/fileStorage';
 import { sessionStore } from '@/lib/store/sessionStore';
-import { getPdfPageCount } from '@/lib/pdf/pdfToImages';
-import { isAcceptedFile, maxUploadBytes } from '@/lib/utils';
-import type { UploadedFileMeta } from '@/types/session';
 
 export const runtime = 'nodejs';
 
-const EXTENSION_BY_MIME: Record<string, string> = {
-  'application/pdf': 'pdf',
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-};
-
+// NOTE: this route is kept for early per-file feedback while the teacher is
+// still on the upload screen (inline "file too large" style errors before
+// they even click "Start Mapping"). The actual processing kickoff no longer
+// depends on its result surviving into a later request -- see the multipart
+// path in /api/process for why (cross-instance session-state risk on
+// serverless: this route's sessionStore write and /api/process's read of it
+// are not guaranteed to land on the same warm lambda).
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const formData = await req.formData();
@@ -31,43 +28,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 400 }
       );
     }
-    if (!isAcceptedFile(file)) {
-      return NextResponse.json(
-        { error: 'Unsupported file type. Please upload a PDF, PNG, JPG, or JPEG.' },
-        { status: 400 }
-      );
-    }
-    if (file.size > maxUploadBytes()) {
-      return NextResponse.json(
-        { error: `File exceeds the ${process.env.NEXT_PUBLIC_MAX_UPLOAD_MB ?? 10}MB limit.` },
-        { status: 400 }
-      );
-    }
-    if (file.size === 0) {
-      return NextResponse.json({ error: 'The uploaded file is empty.' }, { status: 400 });
-    }
 
     if (typeof sessionId !== 'string' || !sessionId) {
       sessionId = nanoid(12);
     }
     sessionStore.getOrCreate(sessionId as string);
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const mimeType = resolveMimeType(file);
-    const extension = EXTENSION_BY_MIME[mimeType] ?? 'bin';
-    const fileId = nanoid(10);
-
-    const storedPath = await saveUploadedFile(sessionId as string, fileId, buffer, extension);
-    const pageCount = mimeType === 'application/pdf' ? await safePageCount(buffer) : 1;
-
-    const meta: UploadedFileMeta = {
-      fileId,
-      originalName: file.name,
-      mimeType,
-      sizeBytes: file.size,
-      pageCount,
-      storedPath,
-    };
+    const meta = await validateAndStoreUpload(sessionId as string, file);
 
     sessionStore.update(sessionId as string, {
       [kind === 'questionPaper' ? 'questionPaper' : 'answerSheet']: meta,
@@ -75,9 +42,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ sessionId, file: meta });
   } catch (err) {
+    const status = err instanceof UploadValidationError ? 400 : 500;
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Upload failed unexpectedly.' },
-      { status: 500 }
+      { status }
     );
   }
 }
@@ -91,20 +59,4 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     [kind === 'questionPaper' ? 'questionPaper' : 'answerSheet']: null,
   });
   return NextResponse.json({ ok: true });
-}
-
-function resolveMimeType(file: File): string {
-  if (file.type && EXTENSION_BY_MIME[file.type]) return file.type;
-  if (/\.pdf$/i.test(file.name)) return 'application/pdf';
-  if (/\.png$/i.test(file.name)) return 'image/png';
-  if (/\.jpe?g$/i.test(file.name)) return 'image/jpeg';
-  return file.type || 'application/octet-stream';
-}
-
-async function safePageCount(buffer: Buffer): Promise<number> {
-  try {
-    return await getPdfPageCount(buffer);
-  } catch {
-    return 1; // corrupt/unreadable metadata shouldn't block upload; extraction will surface the real error later
-  }
 }
