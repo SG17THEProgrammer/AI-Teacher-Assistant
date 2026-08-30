@@ -57,44 +57,41 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '20mb',
     },
+    // Force Vercel to bundle PDF.js standard fonts and binaries into your serverless function
+    outputFileTracingIncludes: {
+      '/api/process': [
+        './node_modules/pdfjs-dist/legacy/build/*.mjs',
+        './node_modules/pdfjs-dist/cmaps/**/*',
+        './node_modules/pdfjs-dist/standard_fonts/**/*',
+      ],
+    },
   },
-  // Tell Next.js to treat these native/ESM packages as external at runtime
-  // rather than bundling them. This prevents the "require() of ES Module"
-  // error for pdfjs-dist (which ships as ESM-only) when the server bundle
-  // is compiled as CommonJS on Vercel.
   serverExternalPackages: [
     'sharp',
     'tesseract.js',
     'pdfjs-dist',
     '@napi-rs/canvas',
     'pdf-parse',
-    '@vercel/blob', // <-- ADDED THIS
+    '@vercel/blob',
   ],
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Keep these as external requires so webpack never bundles them or tries
-      // to resolve their internal worker/wasm files into vendor-chunks.
-      // This is what causes "Cannot find module …pdf.worker.mjs" at runtime.
       config.externals = [
         ...(config.externals || []),
         'sharp',
         'tesseract.js',
         'pdfjs-dist',
-        /^pdfjs-dist\/.*/,   // catches pdfjs-dist/legacy/build/pdf.mjs etc.
-        '@napi-rs/canvas',  // native module used to rasterize PDF pages
-        '@vercel/blob',     // <-- ADDED THIS
+        /^pdfjs-dist\/.*/,
+        '@napi-rs/canvas',
+        '@vercel/blob',
       ];
     } else {
-      // pdfjs-dist references an optional Node `canvas` module that must
-      // resolve to nothing in the browser bundle — only stub it client-side,
-      // since the server actually needs the real module to render PDF pages.
       config.resolve.fallback = {
         ...config.resolve.fallback,
         canvas: false,
         fs: false,
       };
     }
-
     return config;
   },
   images: {
