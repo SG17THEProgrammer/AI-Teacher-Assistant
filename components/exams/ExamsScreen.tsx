@@ -139,7 +139,7 @@ export function ExamsScreen({
                   {/* Score */}
                   <div
                     className={cn(
-                      'flex h-14 w-16 flex-shrink-0 flex-col items-center justify-center rounded-xl text-white',
+                      'flex h-14 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl text-white',
                       entry.percent >= 80
                         ? 'bg-green-500'
                         : entry.percent >= 50
