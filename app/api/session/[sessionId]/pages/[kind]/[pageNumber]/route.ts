@@ -112,7 +112,8 @@ export const runtime = 'nodejs';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ sessionId: string; kind: 'questionPaper' | 'answerSheet'; pageNumber: string }> }
+  // Fix: Changed `kind` back to `string` to satisfy Next.js route parameter types
+  { params }: { params: Promise<{ sessionId: string; kind: string; pageNumber: string }> }
 ): Promise<NextResponse> {
   const { sessionId, kind, pageNumber } = await params;
 
@@ -125,9 +126,12 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid page number.' }, { status: 400 });
   }
 
-  // 1. Try rendered PNG first (These were saved directly to Blob in our previous step)
+  // We explicitly tell TypeScript this is safe because we just checked it above
+  const validKind = kind as 'questionPaper' | 'answerSheet';
+
+  // 1. Try rendered PNG first
   try {
-    const pngUrl = await getPageImageUrl(sessionId, kind, pageNum);
+    const pngUrl = await getPageImageUrl(sessionId, validKind, pageNum);
     if (pngUrl) {
       return NextResponse.redirect(pngUrl);
     }
@@ -138,7 +142,7 @@ export async function GET(
   // 2. Fall back: serve the original uploaded file
   let session = sessionStore.get(sessionId);
 
-  // -- NEW: If memory is wiped (Vercel cold start), recover it from Blob! --
+  // If memory is wiped (Vercel cold start), recover it from Blob!
   if (!session) {
     try {
       const blob = await head(`${sessionId}/session.json`);
@@ -149,12 +153,11 @@ export async function GET(
     }
   }
 
-  const meta = kind === 'answerSheet' ? session?.answerSheet : session?.questionPaper;
+  const meta = validKind === 'answerSheet' ? session?.answerSheet : session?.questionPaper;
   
   if (!meta?.storedPath) {
     return NextResponse.json({ error: 'Page image not found.' }, { status: 404 });
   }
   
-  // meta.storedPath is now the Vercel Blob URL, so we can just redirect to it
   return NextResponse.redirect(meta.storedPath);
 }
