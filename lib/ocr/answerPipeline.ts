@@ -93,6 +93,7 @@ export async function extractAnswersFromPages(
               detectedNumberRawText: a.detectedNumberRawText,
               sequenceIndex: i,
               geminiBox: a.boundingBox ? { page: a.pageNumber ?? 1, ...a.boundingBox } : null,
+              containsDiagram: a.containsDiagram,
             }))
           );
         } catch {

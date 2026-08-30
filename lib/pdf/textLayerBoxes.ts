@@ -72,6 +72,8 @@ export async function computeAnswerBoxesFromTextLayer(
     sequenceIndex: number;
     /** The vision model's own rough box, used only as a safety ceiling (see below). */
     geminiBox?: { page: number; x: number; y: number; width: number; height: number } | null;
+    /** A drawing/figure has no selectable text of its own to bound it -- see below. */
+    containsDiagram?: boolean;
   }[]
 ): Promise<(BoundingBox[] | null)[]> {
   const runs = await extractTextRuns(pdfBuffer);
@@ -94,7 +96,7 @@ export async function computeAnswerBoxesFromTextLayer(
   // pass can be clamped against real neighboring content instead of a fixed
   // amount that can exceed a tightly-spaced document's actual gap between
   // blocks (that's what let padding push two adjacent boxes into overlap).
-  const tightBoxes = blocks.map((_, i) => {
+  const tightBoxes = blocks.map((block, i) => {
     const start = startIndices[i] ?? null;
     if (start === null) return null;
 
@@ -111,12 +113,23 @@ export async function computeAnswerBoxesFromTextLayer(
     const runsInBlock = ordered.slice(start, end).filter((r) => r.page === startRun.page);
     if (runsInBlock.length === 0) return null;
 
+    // A diagram/drawing is a raster region with no selectable text of its
+    // own, so bounding purely by text runs would stop at the caption line
+    // ("Diagram for Answer 2:") and exclude the actual drawing beneath it.
+    // Extend down to wherever the next block starts (or the page bottom, if
+    // this is the last block) so the drawing itself is inside the box.
+    const maxY = block.containsDiagram
+      ? end < ordered.length && ordered[end]!.page === startRun.page
+        ? ordered[end]!.yTop
+        : 1
+      : Math.max(...runsInBlock.map((r) => r.yBottom));
+
     return {
       page: startRun.page,
       minX: Math.min(...runsInBlock.map((r) => r.x)),
       minY: Math.min(...runsInBlock.map((r) => r.yTop)),
       maxX: Math.max(...runsInBlock.map((r) => r.x + r.width)),
-      maxY: Math.max(...runsInBlock.map((r) => r.yBottom)),
+      maxY,
     };
   });
 

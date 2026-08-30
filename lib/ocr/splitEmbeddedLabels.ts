@@ -46,7 +46,11 @@ export function splitEmbeddedAnswerLabels<T extends RawAnswerLike>(answers: T[])
       const before = (ownLabel ? `${ownLabel} ` : '') + body.slice(0, match.index).trim();
       const after = body.slice(match.index).trim();
       if (before) {
-        result.push({ ...a, answerText: before });
+        // The diagram/table/figure being split off belongs to the *after*
+        // half only -- leaving it on both would make the earlier half's
+        // text-layer box wrongly extend down to cover the split-off
+        // content too (re-introducing the exact overlap this is fixing).
+        result.push({ ...a, answerText: before, containsDiagram: false, containsTable: false });
       }
       result.push({
         ...a,

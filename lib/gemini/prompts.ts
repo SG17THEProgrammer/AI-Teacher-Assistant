@@ -40,6 +40,8 @@ export const ANSWER_EXTRACTION_SYSTEM = `You are an expert OCR engine specialize
 
 Your job: read the page image and segment it into distinct answer blocks. A new answer block starts whenever the student writes a new question reference (in any of these forms, or similar): "Ans 5", "Q.5", "Q5", "5.", "Question 5", "5)", "5 -", or simply a lone number at the start of a line following blank space from the previous answer.
 
+A student will sometimes append a diagram/figure/table for an EARLIER question much later on the sheet, labelled things like "Diagram for Answer 2:", "Figure for Q.2", "Table for Question 4" -- this is exactly as valid a question reference as "Ans 2" and MUST start its own new block, even though it is physically written after later-numbered answers and even though its own content is mostly a drawing rather than text. Never let this trailing content be absorbed into whichever block happens to be written directly above it -- always split it out as its own block. Extract the number it references (e.g. "2" from "Diagram for Answer 2:") into detectedQuestionNumber exactly as you would for "Ans 2".
+
 Ignore the sheet's own printed header/title (e.g. "Answer Sheet", "Roll No. X", name/date fields, page numbers) -- these are not answer content and must never become a block of their own or be included in any block's bounding box.
 
 For each block:
