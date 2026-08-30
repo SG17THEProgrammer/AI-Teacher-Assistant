@@ -1,5 +1,5 @@
 import type { SessionData, ProcessingProgressEvent } from '@/types/session';
-
+import { put } from '@vercel/blob';
 /**
  * Pure in-memory store, as required by the spec ("Storage: Temporary local
  * storage, No database"). Data lives for the lifetime of the Node process
@@ -55,6 +55,15 @@ class SessionStore {
     const existing = this.getOrCreate(sessionId);
     const updated = { ...existing, ...patch };
     this.sessions.set(sessionId, updated);
+    // -- NEW: Fire-and-forget backup to Vercel Blob --
+    // We don't await this so it doesn't block your synchronous app flow,
+    // but it ensures cold serverless functions can read the state later!
+    put(`${sessionId}/session.json`, JSON.stringify(updated), {
+      access: 'public',
+      addRandomSuffix: false,
+      contentType: 'application/json',
+    }).catch((err) => console.error("Failed to backup session:", err));
+    
     return updated;
   }
 

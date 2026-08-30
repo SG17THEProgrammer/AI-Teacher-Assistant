@@ -1,5 +1,6 @@
 import { createWorker, type Worker } from 'tesseract.js';
 import type { RenderedPage } from '@/lib/pdf/pdfToImages';
+import os from 'os';
 
 export interface FallbackOcrPage {
   pageNumber: number;
@@ -13,7 +14,11 @@ let workerPromise: Promise<Worker> | null = null;
 
 async function getWorker(): Promise<Worker> {
   if (!workerPromise) {
-    workerPromise = createWorker('eng');
+    // -- NEW: Tell Tesseract to use the OS temp directory --
+    // This prevents the read-only file system crash on Vercel
+    workerPromise = createWorker('eng', 1, {
+      cachePath: os.tmpdir(),
+    });
   }
   return workerPromise;
 }
