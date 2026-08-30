@@ -67,8 +67,8 @@ export function ExamsScreen({
   };
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin border-2 border-black/40 rounded-[15px]">
-      <div className="mx-auto w-full px-6 py-6 md:px-10 md:py-8">
+    <div className="h-full overflow-y-auto scrollbar-thin border-2 border-black/40 rounded-[15px] ml-2">
+      <div className="mx-auto w-full px-6 py-6 md:px-10 md:py-8 h-full">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between -mt-3">
           <div>
@@ -96,7 +96,7 @@ export function ExamsScreen({
 
         {/* Empty State */}
         {history.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white py-16 text-center px-3">
             <ClipboardList
               size={40}
               className="mb-4 text-ink-200"

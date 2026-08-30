@@ -75,51 +75,78 @@ export function AnswerSheetViewer({
       : '';
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-tr-[15px] rounded-tl-[15px] ml-2">
+    <div className="flex h-full flex-col overflow-hidden rounded-tr-[15px] rounded-tl-[15px] ml-3 w-[96%]">
       {/* Top toolbar — always full width, never affected by zoom */}
-      <div className="flex flex-shrink-0 items-center justify-between bg-ink-900 px-4 py-2.5 text-white"> 
-        <span className="text-sm font-semibold">Answer Sheet</span>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
+      <div className="flex flex-shrink-0 items-center justify-between bg-ink-900 px-4 py-2.5 text-white">
+
+        {/* Hides text on mobile, shows on desktop */}
+        <span className="hidden md:inline text-sm font-semibold">Answer Sheet</span>
+
+        {/* 
+    UPDATED CONTAINER: 
+    - w-full justify-between: forces items to opposite sides on mobile
+    - md:w-auto md:justify-start: returns to normal tighter layout on desktop
+  */}
+        <div className="flex w-full justify-between items-center gap-4 text-white px-1 py-1 rounded-xl shadow-lg md:w-auto md:justify-start md:px-3">
+
+          {/* Zoom Controls (The left pill box) */}
+          <div className="flex items-center gap-1 bg-[#2d2d2d] px-2 py-1 rounded-lg">
             <button
               aria-label="Zoom out"
-              onClick={() => setZoom((z) => Math.max(50, z - 10))}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              onClick={() => setZoom((z) => Math.max(100, z - 10))}
+              className={`flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 active:bg-white/20 ${zoom === 100 ? "cursor-not-allowed opacity-40" : ""
+                }`}
+              disabled={zoom === 100}
             >
-              <Minus size={14} />
+              <Minus size={12} className="text-gray-300" />
             </button>
-            <span className="w-11 text-center text-xs font-medium">{zoom}%</span>
+
+            <span className="w-10 text-center text-xs font-semibold select-none">
+              {zoom}%
+            </span>
+
             <button
               aria-label="Zoom in"
-              onClick={() => setZoom((z) => Math.min(200, z + 10))}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              onClick={() => setZoom((z) => Math.min(250, z + 10))}
+              className={`flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 active:bg-white/20 ${zoom === 250 ? "cursor-not-allowed opacity-40" : ""
+                }`}
+              disabled={zoom === 250}
             >
-              <Plus size={14} />
+              <Plus size={12} className="text-gray-300" />
             </button>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Page Controls (The right pill box) */}
+          <div className="flex items-center gap-1.5 bg-[#2d2d2d] px-2 py-1 rounded-lg">
             <button
               aria-label="Previous page"
-              disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30"
+              disabled={page === 1}
+              className={`flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 active:bg-white/20 ${page === 1 ? "cursor-not-allowed opacity-40" : ""
+                }`}
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft size={14} className="text-gray-300" />
             </button>
-            <span className="text-xs font-medium">
+
+            <span className="text-xs font-semibold px-1 select-none whitespace-nowrap">
               Page {page} of {pageCount}
             </span>
+
             <button
               aria-label="Next page"
-              disabled={page >= pageCount}
               onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30"
+              disabled={page === pageCount}
+              className={`flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 active:bg-white/20 ${page === pageCount ? "cursor-not-allowed opacity-40" : ""
+                }`}
             >
-              <ChevronRight size={14} />
+              <ChevronRight size={14} className="text-gray-300" />
             </button>
           </div>
+
         </div>
+
       </div>
+
 
       {spansMultiplePages && (
         <div className="flex-shrink-0 bg-brand-50 px-4 py-1.5 text-center text-xs font-medium text-brand-600">
@@ -128,26 +155,16 @@ export function AnswerSheetViewer({
         </div>
       )}
 
-      {/*
-        Scroll container: always fills remaining height, scrolls in both axes
-        when zoom > 100. The inner wrapper uses `min-w-max` only when zoom
-        pushes content wider than the viewport so horizontal scroll appears;
-        at zoom ≤ 100 we stay flex-centered with no overflow.
-      */}
+      {/* Scroll container */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-auto scrollbar-thin"
+        className="flex-1 overflow-auto scrollbar-thin border-2 border-black rounded-bl-[15px] rounded-br-[15px]"
       >
-        {/*
-          100% zoom = the page's actual reference size (PAGE_MAX_WIDTH), not
-          "stretch to fill the panel" -- otherwise 100% looks artificially
-          full-bleed on a wide panel, and zoom appears to arbitrarily resize
-          the page rather than scale it from a real baseline. Zoom then
-          scales that fixed reference up/down, same as Word/Docs/PDF.js.
-        */}
-        <div className="mx-auto" style={{ maxWidth: PAGE_MAX_WIDTH }}>
+        {/* ADDED: min-h-full ensures layout fills vertical viewport space */}
+        <div className="mx-auto min-h-full flex flex-col" style={{ maxWidth: PAGE_MAX_WIDTH }}>
+          {/* ADDED: flex-1 allows this container to push down to the absolute bottom */}
           <div
-            className="relative mx-auto overflow-hidden rounded-bl-lg rounded-br-lg bg-white shadow-panel border-2 border-black"
+            className="relative mx-auto overflow-hidden rounded-bl-lg rounded-br-lg bg-white shadow-panel flex-1 min-h-full"
             style={{ width: `${zoom}%` }}
           >
             <PageRenderer
@@ -196,11 +213,11 @@ function PageRenderer({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // FIXED: Changed typo 'f-full' to 'h-full'
     <img
       src={src}
       alt={`Answer sheet page ${page}`}
-      className="block h-auto min-w-full w-full"
+      className="object-cover w-full h-full"
       draggable={false}
       onError={() => setFailed(true)}
     />

@@ -89,7 +89,7 @@ export function UploadDropzone({
           handleFiles(e.dataTransfer.files);
         }}
         className={cn(
-          'flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-10 text-center transition-colors',
+          'flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-3 text-center transition-colors',
           dragOver ? 'border-brand-400 bg-brand-50' : 'border-ink-900/15 bg-white hover:border-ink-900/25',
           disabled && 'cursor-not-allowed opacity-50'
         )}

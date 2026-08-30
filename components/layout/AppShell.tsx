@@ -40,7 +40,7 @@ export function AppShell({
         area's own scroll containers take over instead of the column itself
         growing.
       */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden mr-2">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden mr-2 md:mr-0">
         <TopBar onBack={onBack} />
         {/*
           Main content area: flex-1 fills vertical space, overflow-hidden so

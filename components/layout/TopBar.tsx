@@ -4,7 +4,7 @@ import { ArrowLeft, HelpCircle, Bell, Sparkles, ChevronDown, ClipboardList } fro
 
 export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; onBack?: () => void }) {
   return (
-    <header className="flex h-[43px] flex-shrink-0 items-center justify-between border-b border-black/5 bg-white px-4 md:px-6 rounded-[15px] mt-2">
+    <header className="flex h-[43px] flex-shrink-0 items-center justify-between border-b border-black/5 bg-white px-4 md:px-6 rounded-[15px] mt-2 w-[99%]">
       <div className="flex items-center gap-3 text-ink-700">
         {onBack ? (
           <button
@@ -15,8 +15,9 @@ export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; 
             <ArrowLeft size={20} />
           </button>
         ) : null}
-        <ClipboardList size={16} className="text-ink-400" />
-        <span className="text-[15px] font-medium">{breadcrumb}</span>
+        {onBack ? <span className="text-lg font-extrabold text-ink-900 tracking-tighter">VedaAI</span>
+          : <><ClipboardList size={16} className="text-ink-400" />
+            <span className="text-[15px] font-medium">{breadcrumb}</span></>}
       </div>
 
       <div className="flex items-center gap-3 md:gap-5">
@@ -36,6 +37,9 @@ export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; 
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-canvas-200">
             <div className="flex h-full w-full items-center justify-center text-sm">👩🏻‍🏫</div>
+          </div>
+          <div className="h-8 w-8 -ml-2 md:hidden">
+            <div className="flex h-full w-full items-center justify-center text-sm font-bold">☰</div>
           </div>
           <span className="hidden text-sm font-semibold text-ink-900 md:inline">Madhur Rastogi</span>
           <ChevronDown size={16} className="hidden text-ink-400 md:inline" />

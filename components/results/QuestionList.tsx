@@ -49,12 +49,13 @@ export function QuestionList({
   };
 
   return (
-    <div className="flex h-full flex-col mr-1">
+    <div className="flex h-full flex-col ml-2 md:ml-1 rounded-[15px] shadow-[0px_20px_29px_0px_rgba(100,100,111,0.2)] bg-gradient-to-b from-gray-200 via-gray-50 to-white border-t border-l border-black/15">
       <div className="flex items-center justify-between px-5 py-4">
         <h2 className="text-[15px] font-bold text-ink-900">
           Extracted Questions <span className="font-medium text-ink-400">(from question paper)</span>
         </h2>
         <Button
+          className='hidden md:block'
           variant="outline"
           size="sm"
           onClick={() => {

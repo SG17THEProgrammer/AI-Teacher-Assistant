@@ -76,13 +76,13 @@ export function Sidebar({
   }
 
   return (
-    <aside className="hidden md:flex w-[250px] flex-shrink-0 flex-col gap-6 border-r border-black/5 bg-white p-5 rounded-[15px] m-2">
+    <aside className="hidden md:flex w-[250px] flex-shrink-0 flex-col gap-6 border-r border-black/5 bg-white p-5 rounded-[15px] m-2 shadow-[0px_20px_29px_0px_rgba(100,100,111,0.2)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink-900">
             <span className="text-base font-black text-white">V</span>
           </div>
-          <span className="text-xl font-extrabold text-ink-900">VedaAI</span>
+          <span className="text-xl font-extrabold text-ink-900 tracking-tighter">VedaAI</span>
         </div>
         <button
           onClick={onToggle}
@@ -97,9 +97,11 @@ export function Sidebar({
         onClick={() => handleNavClick('AI Toolkit')}
         className="flex items-center gap-2 rounded-pill bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white shadow-floating"
       >
-        <SparkleIcon className="h-4 w-4 text-brand-400" />
+        {/* Only the icon size is increased here */}
+        <SparkleIcon className="h-5 w-5 text-brand-400" />
         AI Teacher&apos;s Toolkit
       </button>
+
 
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map((item) => (
@@ -119,7 +121,7 @@ export function Sidebar({
 
       <div className="mt-auto flex items-center gap-3 rounded-2xl bg-canvas-50 p-3">
         {/* <div className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas-200 text-lg"> */}
-          <img src="https://icon2.cleanpng.com/20180814/yrk/47849b8ccfecbc49a1a1e22daa4905f3.webp" alt="school_image" className='h-9 w-8'/>
+        <img src="https://icon2.cleanpng.com/20180814/yrk/47849b8ccfecbc49a1a1e22daa4905f3.webp" alt="school_image" className='h-9 w-8' />
         {/* </div> */}
         <div className="leading-tight">
           <p className="text-sm font-bold text-ink-900">Delhi Public School</p>
