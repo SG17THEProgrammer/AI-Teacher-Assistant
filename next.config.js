@@ -6,6 +6,17 @@ const nextConfig = {
       bodySizeLimit: '20mb',
     },
   },
+  // Tell Next.js to treat these native/ESM packages as external at runtime
+  // rather than bundling them. This prevents the "require() of ES Module"
+  // error for pdfjs-dist (which ships as ESM-only) when the server bundle
+  // is compiled as CommonJS on Vercel.
+  serverExternalPackages: [
+    'sharp',
+    'tesseract.js',
+    'pdfjs-dist',
+    '@napi-rs/canvas',
+    'pdf-parse',
+  ],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Keep these as external requires so webpack never bundles them or tries
