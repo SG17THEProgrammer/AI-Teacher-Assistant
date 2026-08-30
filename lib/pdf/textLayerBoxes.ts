@@ -124,11 +124,27 @@ export async function computeAnswerBoxesFromTextLayer(
         : 1
       : Math.max(...runsInBlock.map((r) => r.yBottom));
 
+    let minX = Math.min(...runsInBlock.map((r) => r.x));
+    let maxX = Math.max(...runsInBlock.map((r) => r.x + r.width));
+
+    // Same problem horizontally as vertically: the caption text is
+    // typically much narrower than the actual drawing next to/below it, so
+    // bounding by text alone crops off however much of the drawing extends
+    // past the caption's own width. The vision model's guessed box is a
+    // poor source for *vertical* placement (it can't tell a diagram from
+    // the block above it), but it's a reasonable source for the diagram's
+    // horizontal footprint, since that's read straight off the image --
+    // union it in rather than replacing the text-derived bounds outright.
+    if (block.containsDiagram && block.geminiBox && block.geminiBox.page === startRun.page) {
+      minX = Math.min(minX, block.geminiBox.x);
+      maxX = Math.max(maxX, block.geminiBox.x + block.geminiBox.width);
+    }
+
     return {
       page: startRun.page,
-      minX: Math.min(...runsInBlock.map((r) => r.x)),
+      minX,
       minY: Math.min(...runsInBlock.map((r) => r.yTop)),
-      maxX: Math.max(...runsInBlock.map((r) => r.x + r.width)),
+      maxX,
       maxY,
     };
   });
