@@ -23,24 +23,25 @@ export default function Home() {
   const [phase, setPhase] = useState<Phase>('exams');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
-  const [historyVersion, setHistoryVersion] = useState(0); // bump to force re-read
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   const history = useHistory(historyVersion);
 
-  // Auto-open last session if available on first load
   const didInit = useRef(false);
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
-    // Just show exams list — user can pick which one to open
   }, []);
 
   const { state: processingState, start: startProcessing } = useProcessingStream();
-  const {
-    data: fetchedSession,
-    refetch,
-    isFetching,
-  } = useSessionData(sessionId, phase === 'results' && !activeSession);
+
+  // Only fetch from the API when we don't already have an activeSession
+  // (e.g. when reopening a history entry that was saved server-side).
+  // For freshly-processed sessions the snapshot comes inline in the SSE
+  // done event, so we never need this GET call at all — avoiding the
+  // cross-instance 404 on Vercel serverless.
+  const shouldFetch = phase === 'results' && !activeSession && !!sessionId;
+  const { data: fetchedSession, isFetching } = useSessionData(sessionId, shouldFetch);
 
   const session = activeSession ?? fetchedSession;
 
@@ -55,18 +56,24 @@ export default function Home() {
 
   const handleStartMapping = (questionPaper: DropzoneFile, answerSheet: DropzoneFile) => {
     setActiveSession(null);
-    // Both files travel with the /api/process request itself (see
-    // useProcessingStream) rather than through a separate /api/upload
-    // round trip -- that two-step flow relied on a prior request's
-    // in-memory session state still being visible to this one, which
-    // serverless gives no guarantee of across separate requests.
     const newSessionId = nanoid(12);
     setSessionId(newSessionId);
     setPhase('processing');
-    startProcessing(newSessionId, { questionPaper: questionPaper.file, answerSheet: answerSheet.file }, () => {
-      setPhase('results');
-      refetch();
-    });
+
+    startProcessing(
+      newSessionId,
+      { questionPaper: questionPaper.file, answerSheet: answerSheet.file },
+      (snapshot) => {
+        if (snapshot) {
+          // Use the session data delivered inline with the done event —
+          // no GET request needed, no cross-instance 404 possible.
+          setActiveSession(snapshot);
+        }
+        // Still transition to results whether or not we got a snapshot;
+        // if snapshot is null (error case) the error UI handles it.
+        setPhase('results');
+      }
+    );
   };
 
   const handleOpenHistoryEntry = (entry: HistoryEntry) => {

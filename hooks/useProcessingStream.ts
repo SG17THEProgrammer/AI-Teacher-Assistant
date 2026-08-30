@@ -1,11 +1,15 @@
 import { useCallback, useRef, useState } from 'react';
-import type { ProcessingProgressEvent, ProcessingStage } from '@/types/session';
+import type { ProcessingProgressEvent, ProcessingStage, SessionData } from '@/types/session';
 
 export interface ProcessingStreamState {
   stage: ProcessingStage;
   percent: number;
   message: string;
   error: string | null;
+  /** Full session snapshot delivered inline with the 'done' SSE event,
+   *  so the client never needs a separate GET /api/session call that could
+   *  land on a different (empty) serverless instance. */
+  sessionSnapshot: SessionData | null;
 }
 
 const INITIAL_STATE: ProcessingStreamState = {
@@ -13,30 +17,21 @@ const INITIAL_STATE: ProcessingStreamState = {
   percent: 0,
   message: '',
   error: null,
+  sessionSnapshot: null,
 };
 
-/**
- * Consumes the fetch-based Server-Sent Events stream from POST /api/process.
- * We use fetch + ReadableStream rather than EventSource because EventSource
- * only supports GET requests, and starting processing needs a POST body
- * (the uploaded files themselves).
- */
 export function useProcessingStream() {
   const [state, setState] = useState<ProcessingStreamState>(INITIAL_STATE);
   const abortRef = useRef<AbortController | null>(null);
 
   const start = useCallback(
-    (sessionId: string, files: { questionPaper: File; answerSheet: File }, onDone: () => void) => {
+    (sessionId: string, files: { questionPaper: File; answerSheet: File }, onDone: (snapshot: SessionData | null) => void) => {
       setState(INITIAL_STATE);
       const controller = new AbortController();
       abortRef.current = controller;
 
       (async () => {
         try {
-          // Files travel with this same request (multipart), rather than
-          // referencing a prior /api/upload call's result, so the whole
-          // pipeline can run start-to-finish on one serverless instance --
-          // see /api/process's own comment for why that matters.
           const form = new FormData();
           form.append('sessionId', sessionId);
           form.append('questionPaper', files.questionPaper);
@@ -55,6 +50,7 @@ export function useProcessingStream() {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
+          let finalSnapshot: SessionData | null = null;
 
           while (true) {
             const { value, done } = await reader.read();
@@ -69,15 +65,23 @@ export function useProcessingStream() {
               if (!line.startsWith('data:')) continue;
               const json = line.slice('data:'.length).trim();
               if (!json) continue;
-              const event: ProcessingProgressEvent = JSON.parse(json);
+              const event: ProcessingProgressEvent & { session?: SessionData } = JSON.parse(json);
+
+              // Capture the inline session snapshot if the server sent one
+              if (event.session) {
+                finalSnapshot = event.session;
+              }
+
               setState({
                 stage: event.stage,
                 percent: event.percent,
                 message: event.message,
                 error: event.error ?? null,
+                sessionSnapshot: finalSnapshot,
               });
+
               if (event.stage === 'done' || event.stage === 'error') {
-                onDone();
+                onDone(finalSnapshot);
               }
             }
           }
@@ -88,7 +92,7 @@ export function useProcessingStream() {
             stage: 'error',
             error: err instanceof Error ? err.message : 'Processing failed unexpectedly.',
           }));
-          onDone();
+          onDone(null);
         }
       })();
     },

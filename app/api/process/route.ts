@@ -8,38 +8,16 @@ import { extractAnswersFromPages } from '@/lib/ocr/answerPipeline';
 import { insertAnswerGaps } from '@/lib/pdf/insertAnswerGaps';
 import { runMappingEngine } from '@/lib/mapping/mappingEngine';
 import { runGradingEngine } from '@/lib/grading/gradingEngine';
-import type { ProcessingProgressEvent } from '@/types/session';
+import type { ProcessingProgressEvent, SessionData } from '@/types/session';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // matches the <60s upload-to-result target
+export const maxDuration = 60;
 
-/**
- * Orchestrates the full pipeline as one Server-Sent Events stream:
- *
- *   extracting-questions + extracting-answers (run in parallel)
- *   -> mapping
- *   -> grading
- *   -> done
- *
- * Streaming progress (rather than one blocking request) is what lets the
- * "Extracting..." screen in the design show real stage-by-stage feedback,
- * and lets question-paper and answer-sheet OCR overlap instead of running
- * back to back -- the main lever for hitting the 60s performance target.
- */
 export async function POST(req: NextRequest): Promise<Response> {
   const contentType = req.headers.get('content-type') ?? '';
   let sessionId: string;
 
   if (contentType.includes('multipart/form-data')) {
-    // Instance-safe path: the actual file bytes travel with THIS request, so
-    // the whole pipeline runs start-to-finish on one lambda instance. The
-    // old flow required a prior /api/upload call's result (an in-memory
-    // sessionStore entry + a /tmp file) to still be visible here -- but
-    // Vercel gives no guarantee that two separate requests, even seconds
-    // apart from the same browser, land on the same warm instance. That
-    // gap is exactly what produced "Both files must be uploaded before
-    // processing" despite both having genuinely been uploaded (more likely
-    // on a slow mobile connection, which widens the gap between requests).
     try {
       const formData = await req.formData();
       const questionPaperFile = formData.get('questionPaper');
@@ -63,11 +41,6 @@ export async function POST(req: NextRequest): Promise<Response> {
       return new Response(err instanceof Error ? err.message : 'Upload failed unexpectedly.', { status });
     }
   } else {
-    // Legacy path: sessionId referencing files already stored by a prior
-    // /api/upload call. Kept for the integration test and any external
-    // caller that still uses the two-step flow; only instance-safe when
-    // both requests happen to land on the same warm lambda (true by
-    // construction in a local/single-process test run).
     const body = await req.json();
     if (typeof body.sessionId !== 'string') {
       return new Response('sessionId is required', { status: 400 });
@@ -83,7 +56,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (event: ProcessingProgressEvent) => {
+      // Helper: sends a progress event. The final 'done' event also carries
+      // the complete session snapshot so the client never needs a separate
+      // GET /api/session call (which could hit a different cold lambda).
+      const send = (event: ProcessingProgressEvent & { session?: SessionData }) => {
         sessionStore.update(sessionId, { stage: event.stage });
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
@@ -96,19 +72,11 @@ export async function POST(req: NextRequest): Promise<Response> {
           readStoredFile(session.answerSheet!.storedPath),
         ]);
 
-        // Render both documents to page images once. The answer sheet's
-        // rendered pages are persisted immediately so the results screen's
-        // viewer can fetch the exact pixels OCR will run against -- this is
-        // what keeps highlight overlays pixel-aligned regardless of how the
-        // browser would otherwise render the source PDF itself.
         const [questionPages, answerPages] = await Promise.all([
           renderUploadToPages(qpBuffer, session.questionPaper!.mimeType),
           renderUploadToPages(asBuffer, session.answerSheet!.mimeType),
         ]);
 
-        // Question and answer extraction run concurrently -- they are
-        // independent until the mapping stage, so there is no reason to
-        // serialize them and every second here counts toward the 60s budget.
         const [questionResult, answerResult] = await Promise.all([
           extractQuestionsFromPages(
             questionPages,
@@ -137,12 +105,6 @@ export async function POST(req: NextRequest): Promise<Response> {
           })(),
         ]);
 
-        // Now that every answer's final bounding box is known, redraw any
-        // page whose blocks are packed tighter than a readable gap -- this
-        // physically inserts blank rows into the page image itself (the
-        // only way to add spacing on what is ultimately a flat raster),
-        // remapping boxes in place to match. Saved after extraction so OCR
-        // still ran against the original, untouched pixels.
         const spacedAnswerPages = await insertAnswerGaps(answerPages, answerResult.answers);
         await savePageImages(sessionId, 'answerSheet', spacedAnswerPages);
 
@@ -157,9 +119,19 @@ export async function POST(req: NextRequest): Promise<Response> {
 
         send({ stage: 'grading', percent: 85, message: 'Grading and generating feedback…' });
         const grading = await runGradingEngine(questionResult.questions, answerResult.answers, mapping);
-        sessionStore.update(sessionId, { grading, stage: 'done' });
 
-        send({ stage: 'done', percent: 100, message: 'Done.' });
+        // Build the final session state
+        const finalSession = sessionStore.update(sessionId, { grading, stage: 'done' });
+
+        // Embed the full session in the done event so the client can
+        // render results immediately without a follow-up GET that might
+        // hit a different (empty) serverless instance.
+        send({
+          stage: 'done',
+          percent: 100,
+          message: 'Done.',
+          session: finalSession,
+        });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Processing failed unexpectedly.';
         sessionStore.update(sessionId, { stage: 'error', errorMessage: message });
