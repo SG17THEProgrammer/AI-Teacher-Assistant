@@ -108,8 +108,8 @@ export async function runMappingEngine(
     if (pool.length === 0) break;
 
     const result = await semanticMatchQuestionToAnswers(question, pool);
-    if (result.bestIndex !== null && result.confidence > 0.25) {
-      const chosen = pool[result.bestIndex];
+    const chosen = result.bestIndex !== null ? pool[result.bestIndex] : undefined;
+    if (chosen && result.confidence > 0.25) {
       consumedAnswerIds.add(chosen.answerId);
       const confidence = scoreMapping('semantic', result.confidence, question, chosen);
       mapping.mappedAnswerId = chosen.answerId;
@@ -124,16 +124,17 @@ export async function runMappingEngine(
   const stillUnanswered = mappings.filter((m) => m.mappedAnswerId === null);
   const stillUnconsumed = availableForSemantic();
   if (stillUnanswered.length === 1 && stillUnconsumed.length === 1) {
-    const question = questions.find((q) => q.id === stillUnanswered[0].questionId)!;
-    const answer = stillUnconsumed[0];
+    const onlyMapping = stillUnanswered[0]!;
+    const answer = stillUnconsumed[0]!;
+    const question = questions.find((q) => q.id === onlyMapping.questionId)!;
     consumedAnswerIds.add(answer.answerId);
     const confidence = scoreMapping('sequence-fallback', 0.35, question, answer);
-    stillUnanswered[0].mappedAnswerId = answer.answerId;
-    stillUnanswered[0].confidence = confidence;
-    stillUnanswered[0].method = 'sequence-fallback';
-    stillUnanswered[0].reasoning =
+    onlyMapping.mappedAnswerId = answer.answerId;
+    onlyMapping.confidence = confidence;
+    onlyMapping.method = 'sequence-fallback';
+    onlyMapping.reasoning =
       'Exactly one question and one answer block remained unmatched after number and semantic matching, so they were paired as a last resort. Please verify.';
-    stillUnanswered[0].needsReview = true;
+    onlyMapping.needsReview = true;
   }
 
   // ---- Assemble unanswered / orphans ------------------------------------
@@ -189,62 +190,53 @@ function groupAnswersByCanonicalNumber(
   return groups;
 }
 
-const DUPLICATE_TEXT_SIMILARITY = 0.6;
-
 /**
  * Within a same-numbered group, decides which blocks are genuinely all part
- * of the same answer (e.g. a diagram appended far below the main text, or a
- * continuation on a later page) versus a duplicate re-attempt (the student
- * crossed out and rewrote the same content elsewhere). This used to be
- * guessed from how far apart the blocks were written (a small sequence
- * gap = continuation, a large one = duplicate) -- but a supplementary
- * diagram is routinely written well after the other answers, so that
- * heuristic dropped it as a "duplicate" and it never got merged/highlighted.
- * Content similarity is the real signal: near-identical text is a rewrite;
- * anything else is additional content for the same answer, however far away
- * it was written, and must be merged so every scattered piece highlights
- * together.
+ * of the same answer (a page-turn continuation, or a diagram/table appended
+ * far below the main text) versus a duplicate re-attempt (the student
+ * crossed out and rewrote the same content elsewhere).
+ *
+ * A diagram or table is treated as supplementary content unconditionally,
+ * regardless of how far away it was written: a student routinely finishes
+ * writing the text answer first, then goes back and draws the diagram much
+ * later on the sheet, so a large sequence gap there does not imply a
+ * duplicate the way it would for plain re-typed text. (Pure text-similarity
+ * was tried here first and reverted -- it can't reliably tell a paraphrased
+ * duplicate rewrite apart from a low-overlap-but-genuine continuation, since
+ * both can look equally dissimilar in vocabulary.)
+ *
+ * Otherwise, writing-order contiguity is the signal: a small sequence gap
+ * (<=3) means a genuine multi-page continuation; a large gap means other,
+ * differently-numbered content was written in between, so a later
+ * same-numbered attempt is treated as a duplicate.
  */
 function resolveGroup(
   group: ExtractedAnswerBlock[],
   question: ExtractedQuestion
 ): { primary: ExtractedAnswerBlock; additional: ExtractedAnswerBlock[]; duplicates: ExtractedAnswerBlock[] } {
   if (group.length === 1) {
-    return { primary: group[0], additional: [], duplicates: [] };
+    return { primary: group[0]!, additional: [], duplicates: [] };
   }
 
-  const maxSimilarity = Math.max(
-    0,
-    ...group.flatMap((a, i) => group.slice(i + 1).map((b) => textOverlapRatio(a.answerText, b.answerText)))
-  );
-
-  if (maxSimilarity < DUPLICATE_TEXT_SIMILARITY) {
+  const hasSupplementaryContent = group.some((a) => a.containsDiagram || a.containsTable);
+  if (hasSupplementaryContent) {
     const [primary, ...additional] = group;
-    return { primary, additional, duplicates: [] };
+    return { primary: primary!, additional, duplicates: [] };
   }
 
-  // Genuine duplicate re-attempts -- prefer the longer, non-crossed-out,
-  // higher-confidence attempt as primary.
+  const gaps = group.slice(1).map((a, i) => a.sequenceIndex - group[i]!.sequenceIndex);
+  const looksContiguous = gaps.every((g) => g <= 3);
+
+  if (looksContiguous) {
+    const [primary, ...additional] = group;
+    return { primary: primary!, additional, duplicates: [] };
+  }
+
+  // Not contiguous -> treat as duplicate re-attempts. Prefer the longer,
+  // non-crossed-out, higher-confidence attempt as primary.
   const ranked = [...group].sort((a, b) => rankDuplicate(b, question) - rankDuplicate(a, question));
   const [primary, ...rest] = ranked;
-  return { primary, additional: [], duplicates: rest };
-}
-
-function textOverlapRatio(a: string, b: string): number {
-  const tokenize = (s: string) =>
-    new Set(
-      s
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter((w) => w.length > 2)
-    );
-  const wordsA = tokenize(a);
-  const wordsB = tokenize(b);
-  if (wordsA.size === 0 || wordsB.size === 0) return 0;
-  let overlap = 0;
-  for (const w of wordsA) if (wordsB.has(w)) overlap++;
-  return overlap / Math.min(wordsA.size, wordsB.size);
+  return { primary: primary!, additional: [], duplicates: rest };
 }
 
 function rankDuplicate(answer: ExtractedAnswerBlock, _question: ExtractedQuestion): number {

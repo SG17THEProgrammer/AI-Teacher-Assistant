@@ -1,6 +1,10 @@
 import { mkdir, writeFile, readFile, rm } from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { nanoid } from 'nanoid';
+import { getPdfPageCount } from '@/lib/pdf/pdfToImages';
+import { isAcceptedFile, maxUploadBytes } from '@/lib/utils';
+import type { UploadedFileMeta } from '@/types/session';
 
 /**
  * Temporary local storage, exactly as the spec requires ("Storage:
@@ -65,4 +69,71 @@ export async function readPageImage(
 ): Promise<Buffer> {
   const filePath = path.join(sessionDir(sessionId), 'pages', kind, `${pageNumber}.png`);
   return readFile(filePath);
+}
+
+export class UploadValidationError extends Error {}
+
+const EXTENSION_BY_MIME: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+};
+
+/**
+ * Validates and persists one uploaded file, shared by both /api/upload
+ * (early per-file feedback while the teacher is still on the upload
+ * screen) and /api/process's own multipart path (see there for why the
+ * critical path re-validates and re-stores rather than trusting a prior
+ * /api/upload call's result).
+ */
+export async function validateAndStoreUpload(
+  sessionId: string,
+  file: File
+): Promise<UploadedFileMeta> {
+  if (!isAcceptedFile(file)) {
+    throw new UploadValidationError(
+      `Unsupported file type for "${file.name}". Please upload a PDF, PNG, JPG, or JPEG.`
+    );
+  }
+  if (file.size > maxUploadBytes()) {
+    throw new UploadValidationError(
+      `"${file.name}" exceeds the ${process.env.NEXT_PUBLIC_MAX_UPLOAD_MB ?? 10}MB limit.`
+    );
+  }
+  if (file.size === 0) {
+    throw new UploadValidationError(`"${file.name}" is empty.`);
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const mimeType = resolveMimeType(file);
+  const extension = EXTENSION_BY_MIME[mimeType] ?? 'bin';
+  const fileId = nanoid(10);
+  const storedPath = await saveUploadedFile(sessionId, fileId, buffer, extension);
+  const pageCount = mimeType === 'application/pdf' ? await safePageCount(buffer) : 1;
+
+  return {
+    fileId,
+    originalName: file.name,
+    mimeType,
+    sizeBytes: file.size,
+    pageCount,
+    storedPath,
+  };
+}
+
+function resolveMimeType(file: File): string {
+  if (file.type && EXTENSION_BY_MIME[file.type]) return file.type;
+  if (/\.pdf$/i.test(file.name)) return 'application/pdf';
+  if (/\.png$/i.test(file.name)) return 'image/png';
+  if (/\.jpe?g$/i.test(file.name)) return 'image/jpeg';
+  return file.type || 'application/octet-stream';
+}
+
+async function safePageCount(buffer: Buffer): Promise<number> {
+  try {
+    return await getPdfPageCount(buffer);
+  } catch {
+    return 1; // corrupt/unreadable metadata shouldn't block upload; extraction will surface the real error later
+  }
 }

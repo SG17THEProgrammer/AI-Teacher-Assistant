@@ -163,7 +163,7 @@ export async function computeAnswerBoxesFromTextLayer(
   const clampedBoxes = tightBoxes.map((box, i) => {
     if (!box) return null;
     for (let j = i + 1; j < blocks.length; j++) {
-      const nextGemini = blocks[j].geminiBox;
+      const nextGemini = blocks[j]!.geminiBox;
       if (!nextGemini || nextGemini.page !== box.page) continue;
       if (nextGemini.y > box.minY) {
         return { ...box, maxY: Math.min(box.maxY, nextGemini.y) };

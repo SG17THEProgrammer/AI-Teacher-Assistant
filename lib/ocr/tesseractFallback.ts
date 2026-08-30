@@ -74,7 +74,7 @@ export function heuristicSegmentQuestions(pages: FallbackOcrPage[]): {
       const match = line.match(NUMBERING);
       if (match) {
         if (current) results.push(current);
-        const label = match[1].replace(/\s+/g, '');
+        const label = match[1]!.replace(/\s+/g, '');
         current = {
           questionNumber: label,
           questionText: line.slice(match[0].length).trim(),

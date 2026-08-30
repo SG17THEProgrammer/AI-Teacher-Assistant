@@ -39,7 +39,7 @@ export function splitEmbeddedAnswerLabels<T extends RawAnswerLike>(answers: T[])
     const body = ownLabel && a.answerText.startsWith(ownLabel) ? a.answerText.slice(ownLabel.length) : a.answerText;
 
     const match = EMBEDDED_LABEL_RE.exec(body);
-    const referencedDigits = match ? digitsOf(match[1]) : '';
+    const referencedDigits = match ? digitsOf(match[1] ?? null) : '';
     const ownDigits = digitsOf(a.detectedQuestionNumber);
 
     if (match && match.index > 0 && referencedDigits && referencedDigits !== ownDigits) {

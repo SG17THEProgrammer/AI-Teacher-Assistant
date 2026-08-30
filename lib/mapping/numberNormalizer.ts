@@ -42,8 +42,8 @@ export function normalizeQuestionNumber(raw: string | null | undefined): Normali
   // a single-character OCR slip.
   const subPartMatch = s.match(/^(\d+)\s*[.(\-\s]*\(?\s*([a-zA-Z0-9])\)?\s*$/);
   if (subPartMatch) {
-    const parent = subPartMatch[1];
-    const subPart = subPartMatch[2].toLowerCase();
+    const parent = subPartMatch[1]!;
+    const subPart = subPartMatch[2]!.toLowerCase();
     const charOffset = /[a-z]/.test(subPart) ? subPart.charCodeAt(0) - 96 : 50 + subPart.charCodeAt(0);
     return {
       canonical: `${parent}(${subPart})`,
@@ -56,7 +56,7 @@ export function normalizeQuestionNumber(raw: string | null | undefined): Normali
   // Plain number: "5"
   const plainMatch = s.match(/^(\d+)$/);
   if (plainMatch) {
-    const parent = plainMatch[1];
+    const parent = plainMatch[1]!;
     return { canonical: parent, parent, subPart: null, sortKey: Number(parent) * 100 };
   }
 
@@ -93,15 +93,15 @@ export function labelSimilarity(a: string, b: string): number {
 
 function levenshtein(a: string, b: string): number {
   const dp: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 0; i <= a.length; i++) dp[i]![0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0]![j] = j;
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
-      dp[i][j] =
+      dp[i]![j] =
         a[i - 1] === b[j - 1]
-          ? dp[i - 1][j - 1]
-          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+          ? dp[i - 1]![j - 1]!
+          : 1 + Math.min(dp[i - 1]![j]!, dp[i]![j - 1]!, dp[i - 1]![j - 1]!);
     }
   }
-  return dp[a.length][b.length];
+  return dp[a.length]![b.length]!;
 }

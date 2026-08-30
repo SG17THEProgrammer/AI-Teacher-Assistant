@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
+import { nanoid } from 'nanoid';
 import { sessionStore } from '@/lib/store/sessionStore';
-import { readStoredFile, savePageImages } from '@/lib/store/fileStorage';
+import { readStoredFile, savePageImages, validateAndStoreUpload, UploadValidationError } from '@/lib/store/fileStorage';
 import { renderUploadToPages } from '@/lib/pdf/renderUpload';
 import { extractQuestionsFromPages } from '@/lib/ocr/questionPipeline';
 import { extractAnswersFromPages } from '@/lib/ocr/answerPipeline';
@@ -26,9 +27,52 @@ export const maxDuration = 60; // matches the <60s upload-to-result target
  * back to back -- the main lever for hitting the 60s performance target.
  */
 export async function POST(req: NextRequest): Promise<Response> {
-  const { sessionId } = await req.json();
-  if (typeof sessionId !== 'string') {
-    return new Response('sessionId is required', { status: 400 });
+  const contentType = req.headers.get('content-type') ?? '';
+  let sessionId: string;
+
+  if (contentType.includes('multipart/form-data')) {
+    // Instance-safe path: the actual file bytes travel with THIS request, so
+    // the whole pipeline runs start-to-finish on one lambda instance. The
+    // old flow required a prior /api/upload call's result (an in-memory
+    // sessionStore entry + a /tmp file) to still be visible here -- but
+    // Vercel gives no guarantee that two separate requests, even seconds
+    // apart from the same browser, land on the same warm instance. That
+    // gap is exactly what produced "Both files must be uploaded before
+    // processing" despite both having genuinely been uploaded (more likely
+    // on a slow mobile connection, which widens the gap between requests).
+    try {
+      const formData = await req.formData();
+      const questionPaperFile = formData.get('questionPaper');
+      const answerSheetFile = formData.get('answerSheet');
+      const providedSessionId = formData.get('sessionId');
+
+      if (!(questionPaperFile instanceof File) || !(answerSheetFile instanceof File)) {
+        return new Response('Both questionPaper and answerSheet files are required.', { status: 400 });
+      }
+
+      sessionId = typeof providedSessionId === 'string' && providedSessionId ? providedSessionId : nanoid(12);
+      sessionStore.getOrCreate(sessionId);
+
+      const [questionPaperMeta, answerSheetMeta] = await Promise.all([
+        validateAndStoreUpload(sessionId, questionPaperFile),
+        validateAndStoreUpload(sessionId, answerSheetFile),
+      ]);
+      sessionStore.update(sessionId, { questionPaper: questionPaperMeta, answerSheet: answerSheetMeta });
+    } catch (err) {
+      const status = err instanceof UploadValidationError ? 400 : 500;
+      return new Response(err instanceof Error ? err.message : 'Upload failed unexpectedly.', { status });
+    }
+  } else {
+    // Legacy path: sessionId referencing files already stored by a prior
+    // /api/upload call. Kept for the integration test and any external
+    // caller that still uses the two-step flow; only instance-safe when
+    // both requests happen to land on the same warm lambda (true by
+    // construction in a local/single-process test run).
+    const body = await req.json();
+    if (typeof body.sessionId !== 'string') {
+      return new Response('sessionId is required', { status: 400 });
+    }
+    sessionId = body.sessionId;
   }
 
   const session = sessionStore.get(sessionId);
