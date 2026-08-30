@@ -67,9 +67,11 @@ async function insertGapsForPage(
   // clamped to never shrink a gap that's already adequate.
   const insertions: { atY: number; amount: number }[] = [];
   for (let i = 0; i < ranges.length - 1; i++) {
-    const gap = ranges[i + 1].top - ranges[i].bottom;
+    const current = ranges[i]!;
+    const next = ranges[i + 1]!;
+    const gap = next.top - current.bottom;
     const extra = MIN_GAP_PX - gap;
-    if (extra > 0) insertions.push({ atY: ranges[i].bottom, amount: extra });
+    if (extra > 0) insertions.push({ atY: current.bottom, amount: extra });
   }
   if (insertions.length === 0) return page;
 
@@ -86,7 +88,7 @@ async function insertGapsForPage(
   let sliceStart = 0;
   const cuts = [...insertions.map((ins) => ins.atY), height];
   for (let i = 0; i < cuts.length; i++) {
-    const sliceEnd = cuts[i];
+    const sliceEnd = cuts[i]!;
     const sliceHeight = sliceEnd - sliceStart;
     if (sliceHeight > 0) {
       ctx.drawImage(
@@ -95,7 +97,7 @@ async function insertGapsForPage(
         0, sliceStart + cumulative, width, sliceHeight
       );
     }
-    if (i < insertions.length) cumulative += insertions[i].amount;
+    if (i < insertions.length) cumulative += insertions[i]!.amount;
     sliceStart = sliceEnd;
   }
 

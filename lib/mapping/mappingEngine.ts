@@ -108,8 +108,8 @@ export async function runMappingEngine(
     if (pool.length === 0) break;
 
     const result = await semanticMatchQuestionToAnswers(question, pool);
-    if (result.bestIndex !== null && result.confidence > 0.25) {
-      const chosen = pool[result.bestIndex];
+    const chosen = result.bestIndex !== null ? pool[result.bestIndex] : undefined;
+    if (chosen && result.confidence > 0.25) {
       consumedAnswerIds.add(chosen.answerId);
       const confidence = scoreMapping('semantic', result.confidence, question, chosen);
       mapping.mappedAnswerId = chosen.answerId;
@@ -124,16 +124,17 @@ export async function runMappingEngine(
   const stillUnanswered = mappings.filter((m) => m.mappedAnswerId === null);
   const stillUnconsumed = availableForSemantic();
   if (stillUnanswered.length === 1 && stillUnconsumed.length === 1) {
-    const question = questions.find((q) => q.id === stillUnanswered[0].questionId)!;
-    const answer = stillUnconsumed[0];
+    const onlyMapping = stillUnanswered[0]!;
+    const answer = stillUnconsumed[0]!;
+    const question = questions.find((q) => q.id === onlyMapping.questionId)!;
     consumedAnswerIds.add(answer.answerId);
     const confidence = scoreMapping('sequence-fallback', 0.35, question, answer);
-    stillUnanswered[0].mappedAnswerId = answer.answerId;
-    stillUnanswered[0].confidence = confidence;
-    stillUnanswered[0].method = 'sequence-fallback';
-    stillUnanswered[0].reasoning =
+    onlyMapping.mappedAnswerId = answer.answerId;
+    onlyMapping.confidence = confidence;
+    onlyMapping.method = 'sequence-fallback';
+    onlyMapping.reasoning =
       'Exactly one question and one answer block remained unmatched after number and semantic matching, so they were paired as a last resort. Please verify.';
-    stillUnanswered[0].needsReview = true;
+    onlyMapping.needsReview = true;
   }
 
   // ---- Assemble unanswered / orphans ------------------------------------
@@ -210,7 +211,7 @@ function resolveGroup(
   question: ExtractedQuestion
 ): { primary: ExtractedAnswerBlock; additional: ExtractedAnswerBlock[]; duplicates: ExtractedAnswerBlock[] } {
   if (group.length === 1) {
-    return { primary: group[0], additional: [], duplicates: [] };
+    return { primary: group[0]!, additional: [], duplicates: [] };
   }
 
   const maxSimilarity = Math.max(
@@ -220,14 +221,14 @@ function resolveGroup(
 
   if (maxSimilarity < DUPLICATE_TEXT_SIMILARITY) {
     const [primary, ...additional] = group;
-    return { primary, additional, duplicates: [] };
+    return { primary: primary!, additional, duplicates: [] };
   }
 
   // Genuine duplicate re-attempts -- prefer the longer, non-crossed-out,
   // higher-confidence attempt as primary.
   const ranked = [...group].sort((a, b) => rankDuplicate(b, question) - rankDuplicate(a, question));
   const [primary, ...rest] = ranked;
-  return { primary, additional: [], duplicates: rest };
+  return { primary: primary!, additional: [], duplicates: rest };
 }
 
 function textOverlapRatio(a: string, b: string): number {
