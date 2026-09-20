@@ -100,8 +100,8 @@ class SessionStore {
 // Node process/lambda, which is what "in-memory only" needs.
 declare global {
   // eslint-disable-next-line no-var
-  var __vedaSessionStore: SessionStore | undefined;
+  var __assistantSessionStore: SessionStore | undefined;
 }
 
 export const sessionStore: SessionStore =
-  globalThis.__vedaSessionStore ?? (globalThis.__vedaSessionStore = new SessionStore());
+  globalThis.__assistantSessionStore ?? (globalThis.__assistantSessionStore = new SessionStore());

@@ -1,4 +1,4 @@
-# VedaAI — AI Answer Sheet Evaluation Engine
+# AI-Assistant — AI Answer Sheet Evaluation Engine
 
 Upload a question paper and a student's answer sheet; get back every
 question mapped to its answer, an exact highlighted region for each
@@ -14,7 +14,7 @@ rationale behind specific subsystems, see [`skills/`](./skills).
 
 ```bash
 git clone <this-repo>
-cd veda-ai-checker
+cd assistant-ai-checker
 npm install
 cp .env.example .env.local
 # open .env.local and set GEMINI_API_KEY (get one free at https://aistudio.google.com/app/apikey)

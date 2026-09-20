@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Design tokens extracted directly from the VedaAI reference PDF:
+ * Design tokens extracted directly from the AI-Assistant reference PDF:
  * - Warm neutral app background (light warm grey, not pure white)
  * - Near-black ink for primary text and the dark pill CTA
  * - Signature accent: warm orange/vermilion (question highlight, active states)

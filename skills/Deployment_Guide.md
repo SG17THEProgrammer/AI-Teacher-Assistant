@@ -32,7 +32,7 @@ stateless-by-default**: the entire pipeline (`extracting-questions` →
 (`lib/store/sessionStore.ts`) only needs to survive from the initial
 upload calls through to the end of that one request's execution on the
 same warm lambda instance — it is never relied upon to persist *between*
-separate cold invocations. The `globalThis.__vedaSessionStore` pattern
+separate cold invocations. The `globalThis.__assistantSessionStore` pattern
 additionally survives across requests on the same warm instance (helpful
 in dev and in sustained traffic where Vercel keeps a lambda warm), but
 correctness never depends on that survival.

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { openDB, type IDBPDatabase } from 'idb';
 import type { SessionData } from '@/types/session';
 
-const DB_NAME = 'veda_history_db';
+const DB_NAME = 'assistant_history_db';
 const DB_VERSION = 1;
 const STORE_NAME = 'history';
 const MAX_HISTORY = 20;

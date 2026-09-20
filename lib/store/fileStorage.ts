@@ -17,7 +17,7 @@
 //  * request lifecycle for a given session; nothing needs to survive a cold
 //  * start. This constraint is documented in skills/Deployment Guide.md.
 //  */
-// const ROOT = path.join(os.tmpdir(), 'veda-ai-checker');
+// const ROOT = path.join(os.tmpdir(), 'assistant-ai-checker');
 
 // function sessionDir(sessionId: string): string {
 //   return path.join(ROOT, sessionId);

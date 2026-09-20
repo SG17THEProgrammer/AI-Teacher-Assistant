@@ -1,8 +1,8 @@
 {
-  "name": "veda-ai-checker",
+  "name": "assistant-ai-checker",
   "version": "1.0.0",
   "private": true,
-  "description": "VedaAI Teacher's Toolkit - AI Answer Sheet Evaluation Engine",
+  "description": "AI-Assistant Teacher's Toolkit - AI Answer Sheet Evaluation Engine",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

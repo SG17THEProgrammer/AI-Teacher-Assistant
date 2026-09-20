@@ -1,9 +1,9 @@
-# VedaAI — For Teachers
+# AI-Assistant — For Teachers
 
 ## What this does
 
 You upload two things — a question paper and one student's answer sheet
-— and VedaAI reads both, figures out which answer belongs to which
+— and AI-Assistant reads both, figures out which answer belongs to which
 question, marks it, and gives you feedback for every question, all in
 about a minute. No typing scores by hand, no flipping between two
 physical papers to check which answer goes where.
@@ -23,7 +23,7 @@ the **Start Mapping** button lights up.
 ## 2. Processing
 
 Tap **Start Mapping** and you'll see an "Extracting…" screen with a
-progress bar. Behind the scenes, VedaAI is:
+progress bar. Behind the scenes, AI-Assistant is:
 
 1. Reading every question off the question paper.
 2. Reading every answer the student wrote, including handwriting.
@@ -50,23 +50,23 @@ student wrote the wrong number by mistake — it shows up in an
 **Unmapped Answers** section so you can check it yourself rather than it
 silently disappearing.
 
-## 4. Mapping — how VedaAI matches answers to questions
+## 4. Mapping — how AI-Assistant matches answers to questions
 
-Most of the time, VedaAI matches by the question number the student
+Most of the time, AI-Assistant matches by the question number the student
 wrote (however they wrote it — "Q5", "Ans 5", "5.", "Question 5" all work
 the same). If a student forgot to write a number, or numbered something
-wrong, VedaAI reads the *content* of the answer and matches it to the
+wrong, AI-Assistant reads the *content* of the answer and matches it to the
 question it actually answers. Every match shows a small confidence
-indicator — hover or tap a mark badge to see why VedaAI paired that
+indicator — hover or tap a mark badge to see why AI-Assistant paired that
 answer with that question.
 
-If a student's answer to one question runs across two pages, VedaAI
+If a student's answer to one question runs across two pages, AI-Assistant
 keeps it as one answer and highlights it on both pages when you click
 that question — you don't need to hunt for the second half.
 
 ## 5. Highlighting
 
-The green box on the answer sheet is exactly the area VedaAI matched to
+The green box on the answer sheet is exactly the area AI-Assistant matched to
 the question you clicked — not the whole page, not a guess at the general
 area. You can zoom in/out and flip pages; the highlight stays correctly
 placed at any zoom level.
@@ -86,7 +86,7 @@ read out to them directly.
 
 ## 7. Limitations — please read
 
-- **VedaAI can misread messy handwriting.** Like any human marker glancing
+- **AI-Assistant can misread messy handwriting.** Like any human marker glancing
   at rushed handwriting, it can get individual words wrong. If a mark
   looks surprising, tap the question to see the highlighted answer
   yourself before trusting the number.
@@ -109,11 +109,11 @@ Yes — a clear, well-lit photo works, though a flatbed scan will generally
 give more accurate results.
 
 **What happens if my student didn't write any question numbers at all?**
-VedaAI will try to match answers to questions by their content instead.
+AI-Assistant will try to match answers to questions by their content instead.
 It's less reliable than number-based matching, so double-check those
 matches in the results screen.
 
-**Can I edit a mark VedaAI gave?**
+**Can I edit a mark AI-Assistant gave?**
 Not in this version — treat the AI's mark and feedback as a fast first
 pass you review and adjust in your own gradebook.
 

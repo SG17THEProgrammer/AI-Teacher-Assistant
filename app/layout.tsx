@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'VedaAI | AI Teacher\'s Toolkit',
+  title: 'AI-Assistant | AI Teacher\'s Toolkit',
   description: 'Upload a question paper and answer sheet to get instant AI-mapped, AI-graded results.',
 };
 

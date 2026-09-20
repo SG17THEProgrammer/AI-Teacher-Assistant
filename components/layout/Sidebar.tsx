@@ -80,9 +80,9 @@ export function Sidebar({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink-900">
-            <span className="text-base font-black text-white">V</span>
+            <span className="text-base font-black text-white">SG</span>
           </div>
-          <span className="text-xl font-extrabold text-ink-900 tracking-tighter">VedaAI</span>
+          <span className="text-xl font-extrabold text-ink-900 tracking-tighter">AI-Assistant</span>
         </div>
         <button
           onClick={onToggle}
@@ -125,7 +125,7 @@ export function Sidebar({
         {/* </div> */}
         <div className="leading-tight">
           <p className="text-sm font-bold text-ink-900">Delhi Public School</p>
-          <p className="text-xs text-ink-400">Bokaro Steel City</p>
+          <p className="text-xs text-ink-400">Mathura Refinery Nagar</p>
         </div>
       </div>
 

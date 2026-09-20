@@ -15,7 +15,7 @@ export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; 
             <ArrowLeft size={20} />
           </button>
         ) : null}
-        {onBack ? <span className="text-lg font-extrabold text-ink-900 tracking-tighter">VedaAI</span>
+        {onBack ? <span className="text-lg font-extrabold text-ink-900 tracking-tighter">AI-Assistant</span>
           : <><ClipboardList size={16} className="text-ink-400" />
             <span className="text-[15px] font-medium">{breadcrumb}</span></>}
       </div>
@@ -41,7 +41,7 @@ export function TopBar({ breadcrumb = 'Exams', onBack }: { breadcrumb?: string; 
           <div className="h-8 w-8 -ml-2 md:hidden">
             <div className="flex h-full w-full items-center justify-center text-sm font-bold">☰</div>
           </div>
-          <span className="hidden text-sm font-semibold text-ink-900 md:inline">Madhur Rastogi</span>
+          <span className="hidden text-sm font-semibold text-ink-900 md:inline">Shray Gupta</span>
           <ChevronDown size={16} className="hidden text-ink-400 md:inline" />
         </div>
       </div>
