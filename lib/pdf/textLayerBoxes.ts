@@ -85,11 +85,19 @@ export async function computeAnswerBoxesFromTextLayer(
 
   const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
+  // Blocks arrive in reading order, so when several blocks share a label
+  // (e.g. a multi-page "Ans 2." continued on the next page) each one must
+  // claim the NEXT unclaimed occurrence, not always the first.
+  const claimed = new Set<number>();
   const startIndices: (number | null)[] = blocks.map((block) => {
     const label = block.detectedNumberRawText ? normalize(block.detectedNumberRawText) : null;
     if (!label) return null;
-    const found = ordered.findIndex((run) => normalize(run.str).startsWith(label));
-    return found === -1 ? null : found;
+    const found = ordered.findIndex(
+      (run, idx) => !claimed.has(idx) && normalize(run.str).startsWith(label)
+    );
+    if (found === -1) return null;
+    claimed.add(found);
+    return found;
   });
 
   // First pass: tight (unpadded) box per block, so padding in the second

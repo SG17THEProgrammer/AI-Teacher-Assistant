@@ -156,6 +156,7 @@ export async function saveUploadedFile(
   const blob = await put(blobPath, buffer, {
     access: 'public',
     addRandomSuffix: false,
+    allowOverwrite: true, 
   });
   
   // Return the public URL instead of a local file path
@@ -197,6 +198,7 @@ export async function savePageImages(
       return put(blobPath, p.pngBuffer, {
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true, 
       });
     })
   );

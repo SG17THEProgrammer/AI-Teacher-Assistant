@@ -57,14 +57,14 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '20mb',
     },
-    // Force Vercel to bundle PDF.js standard fonts and binaries into your serverless function
-    outputFileTracingIncludes: {
-      '/api/process': [
-        './node_modules/pdfjs-dist/legacy/build/*.mjs',
-        './node_modules/pdfjs-dist/cmaps/**/*',
-        './node_modules/pdfjs-dist/standard_fonts/**/*',
-      ],
-    },
+  },
+  // Force Vercel to bundle PDF.js standard fonts and binaries into your serverless function
+  outputFileTracingIncludes: {
+    '/api/process': [
+      './node_modules/pdfjs-dist/legacy/build/*.mjs',
+      './node_modules/pdfjs-dist/cmaps/**/*',
+      './node_modules/pdfjs-dist/standard_fonts/**/*',
+    ],
   },
   serverExternalPackages: [
     'sharp',

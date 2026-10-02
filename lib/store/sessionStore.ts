@@ -61,6 +61,7 @@ class SessionStore {
     put(`${sessionId}/session.json`, JSON.stringify(updated), {
       access: 'public',
       addRandomSuffix: false,
+      allowOverwrite: true,   
       contentType: 'application/json',
     }).catch((err) => console.error("Failed to backup session:", err));
     

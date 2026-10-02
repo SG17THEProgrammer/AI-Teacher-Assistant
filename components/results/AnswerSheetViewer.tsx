@@ -26,6 +26,8 @@ export function AnswerSheetViewer({
 }) {
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(100);
+  const [loadedPage, setLoadedPage] = useState<number | null>(null);
+  const imageReady = loadedPage === page;
   const highlightRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,7 +58,9 @@ export function AnswerSheetViewer({
 
   useEffect(() => {
     highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [page, activeQuestionId, activeAnswerId]);
+  }, [page, activeQuestionId, activeAnswerId , imageReady]);
+
+  
 
   const pagesWithHighlight = useMemo(
     () => new Set(highlightedBlocks.map((b) => b.pageNumber)),
@@ -64,9 +68,9 @@ export function AnswerSheetViewer({
   );
   const spansMultiplePages = pagesWithHighlight.size > 1;
 
-  const currentPageBoxes = highlightedBlocks
-    .filter((b) => b.pageNumber === page)
-    .flatMap((b) => b.boundingBoxes);
+  const currentPageBoxes = highlightedBlocks.flatMap((b) =>
+    b.boundingBoxes.filter((box) => box.page === page)
+  );
 
   const label = activeAnswerId
     ? 'Unmapped'
@@ -171,15 +175,23 @@ export function AnswerSheetViewer({
               sessionId={sessionId}
               kind="answerSheet"
               page={page}
+              ready={imageReady}
+              onLoaded={() => setLoadedPage(page)}
             />
-            {currentPageBoxes.map((box, i) => (
-              <HighlightOverlay
-                key={i}
-                box={box}
-                label={label}
-                registerRef={i === 0 ? (el) => (highlightRef.current = el) : undefined}
-              />
-            ))}
+            {!imageReady && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-ink-900/10 border-t-brand-500" />
+              </div>
+            )}
+            {imageReady &&
+              currentPageBoxes.map((box, i) => (
+                <HighlightOverlay
+                  key={i}
+                  box={box}
+                  label={label}
+                  registerRef={i === 0 ? (el) => (highlightRef.current = el) : undefined}
+                />
+              ))}
           </div>
         </div>
       </div>
@@ -193,10 +205,14 @@ function PageRenderer({
   sessionId,
   kind,
   page,
+  ready,
+  onLoaded,
 }: {
   sessionId: string;
   kind: string;
   page: number;
+  ready: boolean;
+  onLoaded: () => void;
 }) {
   const [failed, setFailed] = useState(false);
   const src = `/api/session/${sessionId}/pages/${kind}/${page}`;
@@ -217,9 +233,13 @@ function PageRenderer({
     <img
       src={src}
       alt={`Answer sheet page ${page}`}
-      className="object-cover w-full h-full"
+      className={`object-cover w-full h-full transition-opacity duration-200 ${ready ? 'opacity-100' : 'opacity-0'}`}
       draggable={false}
-      onError={() => setFailed(true)}
+      onLoad={onLoaded}
+      onError={() => {
+        setFailed(true);
+        onLoaded(); // stop the spinner; the fallback message shows instead
+      }}
     />
   );
 }
